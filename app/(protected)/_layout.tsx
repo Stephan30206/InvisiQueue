@@ -3,10 +3,13 @@ import { Feather } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { useTheme, getThemeColors } from "@/lib/theme-provider";
 
 export default function ProtectedLayout() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const { colorScheme } = useTheme();
+  const colors = getThemeColors(colorScheme);
 
   useEffect(() => {
     getSession().then((session) => {
@@ -19,8 +22,8 @@ export default function ProtectedLayout() {
 
   if (checking) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#111" />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.text} />
       </View>
     );
   }
@@ -30,15 +33,15 @@ export default function ProtectedLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#fff",
+          backgroundColor: colors.tabBar,
           borderTopWidth: 1,
-          borderTopColor: "#f0f0f0",
+          borderTopColor: colors.tabBarBorder,
           height: 64,
           paddingBottom: 10,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: "#111",
-        tabBarInactiveTintColor: "#bbb",
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",

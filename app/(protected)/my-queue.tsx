@@ -1,6 +1,7 @@
 import { leaveQueue } from "@/data/queue-entries";
 import { supabase } from "@/lib/supabase";
 import { QueueEntry } from "@/types";
+import { useTheme, getThemeColors } from "@/lib/theme-provider";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -16,6 +17,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type HistoryItem = { time: string; label: string; done: boolean };
 
 export default function MyQueueScreen() {
+  const { colorScheme } = useTheme();
+  const colors = getThemeColors(colorScheme);
   const [myEntry, setMyEntry] = useState<QueueEntry | null>(null);
   const [totalWaiting, setTotalWaiting] = useState(0);
   const [queueName, setQueueName] = useState("");
@@ -150,24 +153,24 @@ export default function MyQueueScreen() {
   // Pas de file active
   if (!myEntry) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", justifyContent: "center", alignItems: "center", padding: 32 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center", padding: 32 }}>
         <View
           style={{
             width: 72,
             height: 72,
             borderRadius: 36,
-            backgroundColor: "#f5f5f5",
+            backgroundColor: colors.borderLight,
             justifyContent: "center",
             alignItems: "center",
             marginBottom: 16,
           }}
         >
-          <Feather name="bell" size={32} color="#ccc" />
+          <Feather name="bell" size={32} color={colors.textMuted} />
         </View>
-        <Text style={{ fontSize: 18, fontWeight: "700", color: "#111", textAlign: "center" }}>
+        <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text, textAlign: "center" }}>
           Vous n'êtes dans aucune file
         </Text>
-        <Text style={{ color: "#888", textAlign: "center", marginTop: 8, lineHeight: 20 }}>
+        <Text style={{ color: colors.textMuted, textAlign: "center", marginTop: 8, lineHeight: 20 }}>
           Rejoignez une file depuis l'onglet "Files" pour suivre votre position ici.
         </Text>
       </SafeAreaView>
@@ -175,7 +178,7 @@ export default function MyQueueScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View
         style={{
@@ -191,19 +194,19 @@ export default function MyQueueScreen() {
           style={{
             width: 36,
             height: 36,
-            backgroundColor: "#111",
+            backgroundColor: colors.text,
             borderRadius: 10,
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          <Feather name="zap" size={18} color="#fff" />
+          <Feather name="zap" size={18} color={colors.background} />
         </View>
-        <Text style={{ fontSize: 17, fontWeight: "700", color: "#111" }}>
+        <Text style={{ fontSize: 17, fontWeight: "700", color: colors.text }}>
           Ma position
         </Text>
         <TouchableOpacity onPress={handleShare}>
-          <Feather name="share-2" size={22} color="#111" />
+          <Feather name="share-2" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -215,7 +218,7 @@ export default function MyQueueScreen() {
             style={{
               marginHorizontal: 20,
               marginBottom: 12,
-              backgroundColor: "#111",
+              backgroundColor: colors.text,
               borderRadius: 12,
               padding: 14,
               flexDirection: "row",
@@ -223,9 +226,9 @@ export default function MyQueueScreen() {
               gap: 10,
             }}
           >
-            <Feather name="bell" size={16} color="#fff" style={{ marginTop: 2 }} />
+            <Feather name="bell" size={16} color={colors.background} style={{ marginTop: 2 }} />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>
+              <Text style={{ color: colors.background, fontWeight: "700", fontSize: 13 }}>
                 Notification d'approche
               </Text>
               <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 2, lineHeight: 16 }}>
@@ -243,30 +246,30 @@ export default function MyQueueScreen() {
               height: 160,
               borderRadius: 80,
               borderWidth: 8,
-              borderColor: "#111",
+              borderColor: colors.text,
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor: "#fff",
+              backgroundColor: colors.surfaceLight,
             }}
           >
-            <Text style={{ fontSize: 11, color: "#999", fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 }}>
               VOTRE PLACE
             </Text>
-            <Text style={{ fontSize: 52, fontWeight: "900", color: "#111", lineHeight: 60 }}>
+            <Text style={{ fontSize: 52, fontWeight: "900", color: colors.text, lineHeight: 60 }}>
               #{myEntry.position}
             </Text>
-            <Text style={{ fontSize: 12, color: "#888" }}>En progression</Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted }}>En progression</Text>
           </View>
         </View>
 
         {/* Nom de la file */}
         <View style={{ alignItems: "center", marginBottom: 20 }}>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "#111" }}>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text }}>
             {queueName}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}>
-            <Feather name="map-pin" size={12} color="#999" />
-            <Text style={{ fontSize: 12, color: "#999" }}>{queueAddress}</Text>
+            <Feather name="map-pin" size={12} color={colors.textMuted} />
+            <Text style={{ fontSize: 12, color: colors.textMuted }}>{queueAddress}</Text>
           </View>
         </View>
 
@@ -283,18 +286,19 @@ export default function MyQueueScreen() {
             style={{
               flex: 1,
               borderWidth: 1,
-              borderColor: "#f0f0f0",
+              borderColor: colors.border,
               borderRadius: 12,
               padding: 16,
               alignItems: "center",
               gap: 4,
+              backgroundColor: colors.surfaceLight,
             }}
           >
-            <Feather name="clock" size={18} color="#111" />
-            <Text style={{ fontSize: 20, fontWeight: "800", color: "#111" }}>
+            <Feather name="clock" size={18} color={colors.text} />
+            <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>
               {estimatedMin} min
             </Text>
-            <Text style={{ fontSize: 11, color: "#999", textTransform: "uppercase", fontWeight: "600" }}>
+            <Text style={{ fontSize: 11, color: colors.textMuted, textTransform: "uppercase", fontWeight: "600" }}>
               Attente estimée
             </Text>
           </View>
@@ -302,18 +306,19 @@ export default function MyQueueScreen() {
             style={{
               flex: 1,
               borderWidth: 1,
-              borderColor: "#f0f0f0",
+              borderColor: colors.border,
               borderRadius: 12,
               padding: 16,
               alignItems: "center",
               gap: 4,
+              backgroundColor: colors.surfaceLight,
             }}
           >
-            <Feather name="users" size={18} color="#111" />
-            <Text style={{ fontSize: 20, fontWeight: "800", color: "#111" }}>
+            <Feather name="users" size={18} color={colors.text} />
+            <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>
               {peopleAhead} pers.
             </Text>
-            <Text style={{ fontSize: 11, color: "#999", textTransform: "uppercase", fontWeight: "600" }}>
+            <Text style={{ fontSize: 11, color: colors.textMuted, textTransform: "uppercase", fontWeight: "600" }}>
               Devant vous
             </Text>
           </View>
@@ -322,19 +327,19 @@ export default function MyQueueScreen() {
         {/* Progress bar */}
         <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
-            <Text style={{ fontSize: 12, color: "#999", fontWeight: "600" }}>
+            <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: "600" }}>
               Progression totale
             </Text>
-            <Text style={{ fontSize: 12, color: "#111", fontWeight: "700" }}>
+            <Text style={{ fontSize: 12, color: colors.text, fontWeight: "700" }}>
               {progress}%
             </Text>
           </View>
-          <View style={{ height: 6, backgroundColor: "#f0f0f0", borderRadius: 3 }}>
+          <View style={{ height: 6, backgroundColor: colors.border, borderRadius: 3 }}>
             <View
               style={{
                 height: 6,
                 width: `${progress}%`,
-                backgroundColor: "#111",
+                backgroundColor: colors.text,
                 borderRadius: 3,
               }}
             />
@@ -346,7 +351,7 @@ export default function MyQueueScreen() {
           <TouchableOpacity
             onPress={handleShare}
             style={{
-              backgroundColor: "#111",
+              backgroundColor: colors.text,
               padding: 14,
               borderRadius: 12,
               flexDirection: "row",
@@ -355,8 +360,8 @@ export default function MyQueueScreen() {
               gap: 8,
             }}
           >
-            <Feather name="share-2" size={16} color="#fff" />
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>
+            <Feather name="share-2" size={16} color={colors.background} />
+            <Text style={{ color: colors.background, fontWeight: "700", fontSize: 15 }}>
               Partager ma position
             </Text>
           </TouchableOpacity>
@@ -371,11 +376,12 @@ export default function MyQueueScreen() {
               alignItems: "center",
               gap: 8,
               borderWidth: 1,
-              borderColor: "#ffd0d0",
+              borderColor: colors.danger,
+              backgroundColor: colors.surfaceLight,
             }}
           >
-            <Feather name="log-out" size={16} color="#e00" />
-            <Text style={{ color: "#e00", fontWeight: "600", fontSize: 15 }}>
+            <Feather name="log-out" size={16} color={colors.danger} />
+            <Text style={{ color: colors.danger, fontWeight: "600", fontSize: 15 }}>
               Quitter la file
             </Text>
           </TouchableOpacity>
@@ -383,7 +389,7 @@ export default function MyQueueScreen() {
 
         {/* Historique */}
         <View style={{ paddingHorizontal: 20, marginBottom: 32 }}>
-          <Text style={{ fontSize: 13, fontWeight: "700", color: "#111", marginBottom: 16, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: colors.text, marginBottom: 16, textTransform: "uppercase", letterSpacing: 0.5 }}>
             Historique de ma file
           </Text>
           {history.map((item, index) => (
@@ -394,7 +400,7 @@ export default function MyQueueScreen() {
                     width: 24,
                     height: 24,
                     borderRadius: 12,
-                    backgroundColor: item.done ? "#111" : "#f0f0f0",
+                    backgroundColor: item.done ? colors.text : colors.border,
                     justifyContent: "center",
                     alignItems: "center",
                   }}
@@ -402,18 +408,18 @@ export default function MyQueueScreen() {
                   <Feather
                     name={item.done ? "check" : "circle"}
                     size={12}
-                    color={item.done ? "#fff" : "#ccc"}
+                    color={item.done ? colors.background : colors.textMuted}
                   />
                 </View>
                 {index < history.length - 1 && (
-                  <View style={{ width: 1, flex: 1, backgroundColor: "#f0f0f0", marginTop: 4 }} />
+                  <View style={{ width: 1, flex: 1, backgroundColor: colors.border, marginTop: 4 }} />
                 )}
               </View>
               <View style={{ flex: 1, paddingBottom: 14 }}>
-                <Text style={{ fontSize: 14, color: item.done ? "#111" : "#bbb", fontWeight: item.done ? "600" : "400" }}>
+                <Text style={{ fontSize: 14, color: item.done ? colors.text : colors.textMuted, fontWeight: item.done ? "600" : "400" }}>
                   {item.label}
                 </Text>
-                <Text style={{ fontSize: 12, color: "#bbb", marginTop: 2 }}>{item.time}</Text>
+                <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>{item.time}</Text>
               </View>
             </View>
           ))}

@@ -1,6 +1,7 @@
 import { getQueuesNearby } from "@/data/queues";
 import { getCurrentPosition } from "@/lib/location";
 import { Queue } from "@/types";
+import { useTheme, getThemeColors } from "@/lib/theme-provider";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -17,6 +18,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colorScheme } = useTheme();
+  const colors = getThemeColors(colorScheme);
   const [queues, setQueues] = useState<Queue[]>([]);
   const [filtered, setFiltered] = useState<Queue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,10 +62,10 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <SafeAreaView
-        style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" }}
+        style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }}
       >
-        <ActivityIndicator size="large" color="#111" />
-        <Text style={{ marginTop: 12, color: "#888", fontSize: 14 }}>
+        <ActivityIndicator size="large" color={colors.text} />
+        <Text style={{ marginTop: 12, color: colors.textMuted, fontSize: 14 }}>
           Localisation en cours...
         </Text>
       </SafeAreaView>
@@ -77,7 +80,7 @@ export default function HomeScreen() {
           justifyContent: "center",
           alignItems: "center",
           padding: 32,
-          backgroundColor: "#fff",
+          backgroundColor: colors.background,
         }}
       >
         <View
@@ -85,24 +88,24 @@ export default function HomeScreen() {
             width: 64,
             height: 64,
             borderRadius: 32,
-            backgroundColor: "#f5f5f5",
+            backgroundColor: colors.borderLight,
             justifyContent: "center",
             alignItems: "center",
             marginBottom: 16,
           }}
         >
-          <Feather name="map-pin" size={28} color="#999" />
+          <Feather name="map-pin" size={28} color={colors.textMuted} />
         </View>
-        <Text style={{ fontSize: 18, fontWeight: "700", color: "#111", textAlign: "center" }}>
+        <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text, textAlign: "center" }}>
           Localisation requise
         </Text>
-        <Text style={{ color: "#888", textAlign: "center", marginTop: 8, lineHeight: 20 }}>
+        <Text style={{ color: colors.textMuted, textAlign: "center", marginTop: 8, lineHeight: 20 }}>
           InvisiQueue a besoin de votre position pour afficher les files proches.
         </Text>
         <TouchableOpacity
           onPress={() => { setLoading(true); loadQueues(); }}
           style={{
-            backgroundColor: "#111",
+            backgroundColor: colors.text,
             paddingHorizontal: 24,
             paddingVertical: 14,
             borderRadius: 12,
@@ -112,15 +115,15 @@ export default function HomeScreen() {
             gap: 8,
           }}
         >
-          <Feather name="refresh-cw" size={16} color="#fff" />
-          <Text style={{ color: "#fff", fontWeight: "700" }}>Réessayer</Text>
+          <Feather name="refresh-cw" size={16} color={colors.background} />
+          <Text style={{ color: colors.background, fontWeight: "700" }}>Réessayer</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View
         style={{
@@ -136,15 +139,15 @@ export default function HomeScreen() {
           style={{
             width: 36,
             height: 36,
-            backgroundColor: "#111",
+            backgroundColor: colors.text,
             borderRadius: 10,
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          <Feather name="zap" size={18} color="#fff" />
+          <Feather name="zap" size={18} color={colors.background} />
         </View>
-        <Text style={{ fontSize: 17, fontWeight: "700", color: "#111" }}>
+        <Text style={{ fontSize: 17, fontWeight: "700", color: colors.text }}>
           Files à proximité
         </Text>
         <TouchableOpacity
@@ -152,13 +155,13 @@ export default function HomeScreen() {
           style={{
             width: 36,
             height: 36,
-            backgroundColor: "#111",
+            backgroundColor: colors.text,
             borderRadius: 18,
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          <Feather name="plus" size={20} color="#fff" />
+          <Feather name="plus" size={20} color={colors.background} />
         </TouchableOpacity>
       </View>
 
@@ -169,19 +172,19 @@ export default function HomeScreen() {
           marginBottom: 16,
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: "#f5f5f5",
+          backgroundColor: colors.borderLight,
           borderRadius: 12,
           paddingHorizontal: 12,
           gap: 8,
         }}
       >
-        <Feather name="search" size={16} color="#999" />
+        <Feather name="search" size={16} color={colors.textMuted} />
         <TextInput
           placeholder="Rechercher une file..."
           value={search}
           onChangeText={setSearch}
-          style={{ flex: 1, paddingVertical: 12, fontSize: 14, color: "#111" }}
-          placeholderTextColor="#bbb"
+          style={{ flex: 1, paddingVertical: 12, fontSize: 14, color: colors.text }}
+          placeholderTextColor={colors.textMuted}
         />
       </View>
 
@@ -190,7 +193,7 @@ export default function HomeScreen() {
         style={{
           paddingHorizontal: 20,
           fontSize: 12,
-          color: "#999",
+          color: colors.textMuted,
           marginBottom: 8,
           textTransform: "uppercase",
           letterSpacing: 0.5,
@@ -208,13 +211,13 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); loadQueues(); }}
-            tintColor="#111"
+            tintColor={colors.text}
           />
         }
         ListEmptyComponent={
           <View style={{ paddingTop: 60, alignItems: "center" }}>
-            <Feather name="inbox" size={40} color="#ddd" />
-            <Text style={{ color: "#bbb", marginTop: 12, textAlign: "center", fontSize: 15 }}>
+            <Feather name="inbox" size={40} color={colors.textMuted} />
+            <Text style={{ color: colors.textMuted, marginTop: 12, textAlign: "center", fontSize: 15 }}>
               Aucune file trouvée près de vous.
             </Text>
           </View>
@@ -232,8 +235,8 @@ export default function HomeScreen() {
               padding: 16,
               borderRadius: 14,
               borderWidth: 1,
-              borderColor: "#f0f0f0",
-              backgroundColor: "#fff",
+              borderColor: colors.border,
+              backgroundColor: colors.surfaceLight,
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.05,
@@ -242,32 +245,32 @@ export default function HomeScreen() {
             }}
           >
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <Text style={{ fontSize: 16, fontWeight: "700", color: "#111", flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: colors.text, flex: 1 }}>
                 {item.name}
               </Text>
               <View
                 style={{
-                  backgroundColor: "#f0f0f0",
+                  backgroundColor: colors.borderLight,
                   borderRadius: 8,
                   paddingHorizontal: 8,
                   paddingVertical: 4,
                 }}
               >
-                <Text style={{ fontSize: 12, color: "#555", fontWeight: "600" }}>
+                <Text style={{ fontSize: 12, color: colors.textSecondary, fontWeight: "600" }}>
                   {Math.round(item.distance_meters!)} m
                 </Text>
               </View>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Feather name="users" size={14} color="#999" />
-                <Text style={{ fontSize: 13, color: "#666" }}>
+                <Feather name="users" size={14} color={colors.textMuted} />
+                <Text style={{ fontSize: 13, color: colors.textSecondary }}>
                   {item.waiting_count} en attente
                 </Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Feather name="clock" size={14} color="#999" />
-                <Text style={{ fontSize: 13, color: "#666" }}>
+                <Feather name="clock" size={14} color={colors.textMuted} />
+                <Text style={{ fontSize: 13, color: colors.textSecondary }}>
                   ~{(item.waiting_count ?? 0) * 3} min
                 </Text>
               </View>

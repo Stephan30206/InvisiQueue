@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { useTheme, getThemeColors } from "@/lib/theme-provider";
 import { Feather } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
@@ -29,6 +30,8 @@ type RegisterSchema = z.infer<typeof registerSchema>;
 
 const RegisterScreen = () => {
   const router = useRouter();
+  const { colorScheme } = useTheme();
+  const colors = getThemeColors(colorScheme);
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -69,15 +72,15 @@ const RegisterScreen = () => {
       name={name}
       render={({ field: { onChange, value }, fieldState: { error } }) => (
         <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, fontWeight: "600", color: "#444", marginBottom: 6 }}>
+          <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6 }}>
             {label}
           </Text>
           <View
             style={{
               borderWidth: 1,
-              borderColor: error ? "#e00" : "#e0e0e0",
+              borderColor: error ? colors.danger : colors.border,
               borderRadius: 10,
-              backgroundColor: "#fafafa",
+              backgroundColor: colors.surfaceLight,
               flexDirection: "row",
               alignItems: "center",
             }}
@@ -89,20 +92,21 @@ const RegisterScreen = () => {
               secureTextEntry={secure && !showToggle}
               keyboardType={keyboard ?? "default"}
               autoCapitalize="none"
-              style={{ flex: 1, padding: 14, fontSize: 15 }}
+              style={{ flex: 1, padding: 14, fontSize: 15, color: colors.text }}
+              placeholderTextColor={colors.textMuted}
             />
             {secure && (
               <TouchableOpacity onPress={onToggle} style={{ padding: 14 }}>
                 <Feather
                   name={showToggle ? "eye-off" : "eye"}
                   size={18}
-                  color="#999"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             )}
           </View>
           {error && (
-            <Text style={{ color: "#e00", fontSize: 12, marginTop: 4 }}>
+            <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>
               {error.message}
             </Text>
           )}
@@ -112,9 +116,9 @@ const RegisterScreen = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <TouchableOpacity onPress={() => router.back()} style={{ padding: 20 }}>
-        <Feather name="arrow-left" size={22} color="#111" />
+        <Feather name="arrow-left" size={22} color={colors.text} />
       </TouchableOpacity>
 
       <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
@@ -122,20 +126,20 @@ const RegisterScreen = () => {
           style={{
             width: 48,
             height: 48,
-            backgroundColor: "#111",
+            backgroundColor: colors.text,
             borderRadius: 12,
             justifyContent: "center",
             alignItems: "center",
             marginBottom: 20,
           }}
         >
-          <Feather name="zap" size={24} color="#fff" />
+          <Feather name="zap" size={24} color={colors.background} />
         </View>
 
-        <Text style={{ fontSize: 26, fontWeight: "800", color: "#111", marginBottom: 6 }}>
+        <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text, marginBottom: 6 }}>
           Créer un compte
         </Text>
-        <Text style={{ fontSize: 14, color: "#888", marginBottom: 28 }}>
+        <Text style={{ fontSize: 14, color: colors.textMuted, marginBottom: 28 }}>
           Rejoignez InvisiQueue
         </Text>
 
@@ -166,7 +170,7 @@ const RegisterScreen = () => {
           onPress={form.handleSubmit(handleRegister)}
           disabled={form.formState.isSubmitting}
           style={{
-            backgroundColor: "#111",
+            backgroundColor: colors.text,
             padding: 16,
             borderRadius: 12,
             alignItems: "center",
@@ -175,9 +179,9 @@ const RegisterScreen = () => {
           }}
         >
           {form.formState.isSubmitting ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.background} />
           ) : (
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+            <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>
               S'inscrire
             </Text>
           )}
@@ -187,9 +191,9 @@ const RegisterScreen = () => {
           onPress={() => router.back()}
           style={{ alignItems: "center", marginTop: 20 }}
         >
-          <Text style={{ color: "#111", fontSize: 14 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
             Déjà un compte ?{" "}
-            <Text style={{ color: "#111", fontWeight: "700" }}>Se connecter</Text>
+            <Text style={{ color: colors.text, fontWeight: "700" }}>Se connecter</Text>
           </Text>
         </TouchableOpacity>
       </View>
