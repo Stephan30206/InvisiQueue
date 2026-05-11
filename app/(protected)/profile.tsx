@@ -382,7 +382,7 @@ export default function ProfileScreen() {
               icon: "help-circle",
               label: t("helpCenter"),
               sub: t("helpCenterSub"),
-              onPress: () => {},
+              onPress: () => router.push("/help-center"),
             },
             {
               icon: "info",
