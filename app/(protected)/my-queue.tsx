@@ -1,17 +1,10 @@
 import { leaveQueue } from "@/data/queue-entries";
 import { supabase } from "@/lib/supabase";
+import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { QueueEntry } from "@/types";
-import { useTheme, getThemeColors } from "@/lib/theme-provider";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
-import {
-    Alert,
-    ScrollView,
-    Share,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Alert, ScrollView, Share, Text, TouchableOpacity, View, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type HistoryItem = { time: string; label: string; done: boolean };

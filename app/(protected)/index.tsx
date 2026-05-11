@@ -1,19 +1,11 @@
 import { getQueuesNearby } from "@/data/queues";
 import { getCurrentPosition } from "@/lib/location";
+import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { Queue } from "@/types";
-import { useTheme, getThemeColors } from "@/lib/theme-provider";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {

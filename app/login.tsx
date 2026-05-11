@@ -1,15 +1,9 @@
 import { login } from "@/data/users";
-import { useTheme, getThemeColors } from "@/lib/theme-provider";
+import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-    ActivityIndicator,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const LoginScreen = () => {
