@@ -71,10 +71,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     handleSetIsDarkMode(!isDarkMode);
   };
 
-  if (isLoading) {
-    return <>{children}</>;
-  }
-
   const colorScheme: ColorScheme = isDarkMode ? 'dark' : 'light';
 
   return (
