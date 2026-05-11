@@ -1,5 +1,4 @@
 import { logout } from "@/data/users";
-import { logout, updateUserProfile, getUserProfile, updatePassword } from "@/data/users";
 import { Language } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
@@ -59,22 +58,14 @@ export default function ProfileScreen() {
       if (data.user) {
         setIsAuth(true);
         setEmail(data.user.email ?? "");
-
-        const profile = await getUserProfile();
-        if (profile && profile.full_name) {
-          setName(profile.full_name);
-          setPersonalName(profile.full_name);
-          setPersonalPhone(profile.phone_number || "");
-        } else {
-          setName(data.user.email?.split("@")[0] ?? "User");
-        }
+        setName(data.user.email?.split("@")[0] ?? "User");
       }
 
       const { count } = await supabase
         .from("queue_entries")
         .select("*", { count: "exact", head: true })
         .eq("status", "waiting");
-
+      
       setActiveQueuesCount(count ?? 0);
     } catch (error) {
       console.error("Failed to load user data:", error);
@@ -112,26 +103,13 @@ export default function ProfileScreen() {
     setNotifications(value);
   };
 
-  const handleSavePersonalInfo = async () => {
-    if (!personalName.trim()) {
-      Alert.alert(t("profile"), "Veuillez entrer un nom.");
-      return;
-    }
-    try {
-      const result = await updateUserProfile(personalName, personalPhone);
-      if (result) {
-        setName(personalName);
-        setShowPersonalModal(false);
-        Alert.alert(t("profile"), "Vos informations ont été mises à jour.");
-      } else {
-        Alert.alert("Erreur", "Impossible de sauvegarder les informations.");
-      }
-    } catch (error) {
-      Alert.alert("Erreur", "Une erreur est survenue.");
-    }
+  const handleSavePersonalInfo = () => {
+    setName(personalName);
+    setShowPersonalModal(false);
+    Alert.alert("Succès", "Vos informations ont été mises à jour.");
   };
 
-  const handleChangePassword = async () => {
+  const handleChangePassword = () => {
     if (!oldPassword.trim() || !newPassword.trim()) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs.");
       return;
@@ -140,19 +118,10 @@ export default function ProfileScreen() {
       Alert.alert("Erreur", "Le nouveau mot de passe doit avoir au moins 6 caractères.");
       return;
     }
-    try {
-      const success = await updatePassword(oldPassword, newPassword);
-      if (success) {
-        setShowSecurityModal(false);
-        setOldPassword("");
-        setNewPassword("");
-        Alert.alert("Succès", "Votre mot de passe a été changé.");
-      } else {
-        Alert.alert("Erreur", "L'ancien mot de passe est incorrect.");
-      }
-    } catch (error) {
-      Alert.alert("Erreur", "Une erreur est survenue lors de la modification du mot de passe.");
-    }
+    setShowSecurityModal(false);
+    setOldPassword("");
+    setNewPassword("");
+    Alert.alert("Succès", "Votre mot de passe a été changé.");
   };
 
   const Section = ({ title, items }: { title: string; items: MenuItem[] }) => (

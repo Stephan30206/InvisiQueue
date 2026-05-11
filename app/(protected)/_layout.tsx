@@ -1,5 +1,4 @@
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
-import { useLanguage } from "@/lib/use-language";
 import { Feather } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -9,7 +8,6 @@ export default function ProtectedLayout() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const { colorScheme } = useTheme();
-  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
 
   useEffect(() => {
@@ -47,7 +45,7 @@ export default function ProtectedLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t("filesTab"),
+          title: "Files",
           tabBarIcon: ({ color, size }) => (
             <Feather name="list" size={size} color={color} />
           ),
@@ -56,7 +54,7 @@ export default function ProtectedLayout() {
       <Tabs.Screen
         name="my-queue"
         options={{
-          title: t("myQueueTab"),
+          title: "Ma File",
           tabBarIcon: ({ color, size }) => (
             <Feather name="bell" size={size} color={color} />
           ),
@@ -65,7 +63,7 @@ export default function ProtectedLayout() {
       <Tabs.Screen
         name="manage"
         options={{
-          title: t("manageTab"),
+          title: "Gestion",
           tabBarIcon: ({ color, size }) => (
             <Feather name="briefcase" size={size} color={color} />
           ),
@@ -74,7 +72,7 @@ export default function ProtectedLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: t("profileTab"),
+          title: "Profil",
           tabBarIcon: ({ color, size }) => (
             <Feather name="user" size={size} color={color} />
           ),
