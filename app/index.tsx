@@ -73,7 +73,8 @@ const OnboardingScreen = () => {
       >
         <Image
           source={require("@/assets/images/invisi.png")}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, resizeMode: "cover" }}
+          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+          resizeMode="cover"
         />
         <View
           style={{
