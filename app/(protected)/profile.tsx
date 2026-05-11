@@ -1,9 +1,9 @@
 import { logout } from "@/data/users";
+import { useUserStorage } from "@/hooks/use-user-storage";
 import { Language } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { useLanguage } from "@/lib/use-language";
-import { useUserStorage } from "@/hooks/use-user-storage";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -109,11 +109,6 @@ export default function ProfileScreen() {
         },
       },
     ]);
-  };
-
-  const handleLanguageChange = async (lang: Language) => {
-    await setLanguage(lang);
-    setShowLanguageModal(false);
   };
 
   const handleLanguageChange = async (lang: Language) => {
