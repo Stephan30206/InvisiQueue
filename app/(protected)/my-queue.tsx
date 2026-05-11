@@ -1,6 +1,7 @@
 import { leaveQueue } from "@/data/queue-entries";
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { QueueEntry } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
@@ -11,6 +12,7 @@ type HistoryItem = { time: string; label: string; done: boolean };
 
 export default function MyQueueScreen() {
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
   const [myEntry, setMyEntry] = useState<QueueEntry | null>(null);
   const [totalWaiting, setTotalWaiting] = useState(0);
