@@ -5,7 +5,13 @@ export const translations = {
     // Common
     language: 'English',
     darkMode: 'Dark Mode',
-    
+
+    // Tabs
+    filesTab: 'Files',
+    myQueueTab: 'My Queue',
+    manageTab: 'Manage',
+    profileTab: 'Profile',
+
     // Profile
     profile: 'Profile',
     myAccount: 'My Account',
@@ -13,7 +19,6 @@ export const translations = {
     personalInfoSub: 'Edit your name, email and phone',
     security: 'Security & Privacy',
     securitySub: 'Change your password',
-    language: 'Language',
     preferences: 'Preferences',
     notifications: 'Push Notifications',
     notificationsSub: 'Queue alerts and updates',
@@ -44,7 +49,13 @@ export const translations = {
     // Common
     language: 'Français',
     darkMode: 'Mode Sombre',
-    
+
+    // Tabs
+    filesTab: 'Files',
+    myQueueTab: 'Ma File',
+    manageTab: 'Gestion',
+    profileTab: 'Profil',
+
     // Profile
     profile: 'Profil',
     myAccount: 'Mon compte',
@@ -52,7 +63,6 @@ export const translations = {
     personalInfoSub: 'Modifier votre nom, email et téléphone',
     security: 'Sécurité & Confidentialité',
     securitySub: 'Changer de mot de passe',
-    language: 'Langue',
     preferences: 'Préférences',
     notifications: 'Notifications Push',
     notificationsSub: 'Alertes de file d\'attente et mises à jour',
