@@ -12,12 +12,7 @@ export default function ProtectedLayout() {
   const colors = getThemeColors(colorScheme);
 
   useEffect(() => {
-    getSession().then((session) => {
-      if (!session) {
-        router.replace("/");
-      }
-      setChecking(false);
-    });
+    setChecking(false);
   }, []);
 
   if (checking) {

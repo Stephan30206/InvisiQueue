@@ -15,12 +15,10 @@ const OnboardingScreen = () => {
 
   const handleAuthorizeLocation = async () => {
     try {
-      const position = await getCurrentPosition();
-      if (position) {
-        router.replace("/(protected)");
-      }
+      await getCurrentPosition();
     } catch (error) {
       console.error("Location error:", error);
+    } finally {
       router.replace("/(protected)");
     }
   };
@@ -69,7 +67,7 @@ const OnboardingScreen = () => {
           overflow: "hidden",
           marginVertical: 20,
           height: 200,
-          backgroundColor: "#e8e8e8",
+          backgroundColor: colors.borderLight,
           justifyContent: "flex-end",
         }}
       >
@@ -83,7 +81,7 @@ const OnboardingScreen = () => {
             padding: 16,
           }}
         >
-          <Text style={{ color: "#fff", fontSize: 18, fontWeight: "700" }}>
+          <Text style={{ color: colors.background, fontSize: 18, fontWeight: "700" }}>
             Votre temps est précieux.
           </Text>
           <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 2 }}>
