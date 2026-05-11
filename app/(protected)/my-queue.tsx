@@ -22,6 +22,10 @@ export default function MyQueueScreen() {
 
   useEffect(() => {
     loadMyQueue();
+
+    return () => {
+      supabase.removeAllChannels();
+    };
   }, []);
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export default function MyQueueScreen() {
     setHistory(items);
 
     // Realtime
-    supabase
+    const channel = supabase
       .channel(`my-entry-${entryData.id}`)
       .on(
         "postgres_changes",
@@ -114,6 +118,10 @@ export default function MyQueueScreen() {
         }
       )
       .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   };
 
   const handleLeave = () => {
