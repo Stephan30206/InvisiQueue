@@ -72,9 +72,8 @@ const OnboardingScreen = () => {
         }}
       >
         <Image
-          source={require("@/assets/images/invisi.png")}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-          resizeMode="cover"
+          source={{ uri: "https://cdn.builder.io/api/v1/image/assets%2F6ef30d2ed1c449a7a8bdd9517f047b02%2F854331ec71634a5c8d4e7c482b22b9eb?format=webp&width=800&height=1200" }}
+          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, resizeMode: "cover" }}
         />
         <View
           style={{
