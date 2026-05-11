@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View, } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -111,11 +111,13 @@ const RegisterScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <TouchableOpacity onPress={() => router.back()} style={{ padding: 20 }}>
-        <Feather name="arrow-left" size={22} color={colors.text} />
-      </TouchableOpacity>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+          <TouchableOpacity onPress={() => router.back()} style={{ padding: 20 }}>
+            <Feather name="arrow-left" size={22} color={colors.text} />
+          </TouchableOpacity>
 
-      <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
+          <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
         <View
           style={{
             width: 48,
@@ -190,7 +192,9 @@ const RegisterScreen = () => {
             <Text style={{ color: colors.text, fontWeight: "700" }}>Se connecter</Text>
           </Text>
         </TouchableOpacity>
-      </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
