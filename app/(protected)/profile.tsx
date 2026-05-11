@@ -27,6 +27,7 @@ export default function ProfileScreen() {
   const { colorScheme, isDarkMode, toggleDarkMode, language, setLanguage } = useTheme();
   const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
+  const { loadUserData: loadStoredUserData, saveUserData } = useUserStorage();
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -59,14 +60,29 @@ export default function ProfileScreen() {
       if (data.user) {
         setIsAuth(true);
         setEmail(data.user.email ?? "");
-        setName(data.user.email?.split("@")[0] ?? "User");
+
+        const storedData = await loadStoredUserData();
+        if (storedData.name) {
+          setName(storedData.name);
+          setPersonalName(storedData.name);
+        } else {
+          const defaultName = data.user.email?.split("@")[0] ?? "User";
+          setName(defaultName);
+          setPersonalName(defaultName);
+        }
+
+        if (storedData.phone) {
+          setPersonalPhone(storedData.phone);
+        }
+
+        setNotifications(storedData.notifications);
       }
 
       const { count } = await supabase
         .from("queue_entries")
         .select("*", { count: "exact", head: true })
         .eq("status", "waiting");
-      
+
       setActiveQueuesCount(count ?? 0);
     } catch (error) {
       console.error("Failed to load user data:", error);
@@ -100,12 +116,23 @@ export default function ProfileScreen() {
     setShowLanguageModal(false);
   };
 
-  const handleNotificationsChange = (value: boolean) => {
-    setNotifications(value);
+  const handleLanguageChange = async (lang: Language) => {
+    await setLanguage(lang);
+    setShowLanguageModal(false);
   };
 
-  const handleSavePersonalInfo = () => {
+  const handleNotificationsChange = async (value: boolean) => {
+    setNotifications(value);
+    await saveUserData({ notifications: value });
+  };
+
+  const handleSavePersonalInfo = async () => {
+    if (!personalName.trim()) {
+      Alert.alert("Erreur", "Le nom ne peut pas être vide.");
+      return;
+    }
     setName(personalName);
+    await saveUserData({ name: personalName, phone: personalPhone });
     setShowPersonalModal(false);
     Alert.alert("Succès", "Vos informations ont été mises à jour.");
   };
