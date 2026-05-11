@@ -39,6 +39,11 @@ export const translations = {
     toManage: 'to manage',
     termsFooter: 'By using Invisible Queue, you accept our Terms of Use and Privacy Policy.',
     activeQueuesCount: (count: number) => count > 1 ? `${count} files` : `${count} file`,
+    // Tab navigation
+    filesTab: 'Files',
+    myQueueTab: 'My Queue',
+    manageTab: 'Manage',
+    profileTab: 'Profile',
   },
   fr: {
     // Common
@@ -78,6 +83,11 @@ export const translations = {
     toManage: 'à administrer',
     termsFooter: 'En utilisant Invisible Queue, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.',
     activeQueuesCount: (count: number) => count > 1 ? `${count} files` : `${count} file`,
+    // Tab navigation
+    filesTab: 'Files',
+    myQueueTab: 'Ma File',
+    manageTab: 'Gestion',
+    profileTab: 'Profil',
   },
 };
 
