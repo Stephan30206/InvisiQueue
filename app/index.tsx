@@ -72,7 +72,7 @@ const OnboardingScreen = () => {
         }}
       >
         <Image
-          source={{ uri: "https://i.ibb.co/FkQ6NB1X/invisi.png" }}
+          source={{ uri: "https://i.ibb.co/nNBR4VNZ/invisi.png" }}
           style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, resizeMode: "cover" }}
         />
         <View
@@ -82,13 +82,13 @@ const OnboardingScreen = () => {
             left: 0,
             right: 0,
             backgroundColor: "rgba(0,0,0,0.45)",
-            padding: 16,
+            padding: 3,
           }}
         >
-          <Text style={{ color: colors.background, fontSize: 18, fontWeight: "700" }}>
+          <Text style={{ color: colors.background, fontSize: 18, fontWeight: "700", paddingLeft: 8}}>
             Votre temps est précieux.
           </Text>
-          <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 2 }}>
+          <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 1 , paddingLeft: 8, paddingBottom: 1}}>
             L'attente devient invisible et sereine.
           </Text>
         </View>
