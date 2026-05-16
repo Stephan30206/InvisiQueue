@@ -26,11 +26,22 @@ export const createQueue = async (
   name: string,
   lat: number,
   lng: number,
-  userId: string
+  userId: string,
+  locationLabel?: string,
+  city?: string,
+  country?: string
 ): Promise<Queue | null> => {
   const { data, error } = await supabase
     .from("queues")
-    .insert({ name, lat, lng, created_by: userId })
+    .insert({
+      name,
+      lat,
+      lng,
+      location_label: locationLabel,
+      city,
+      country,
+      created_by: userId,
+    })
     .select()
     .single();
 
