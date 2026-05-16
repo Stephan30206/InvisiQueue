@@ -2,6 +2,14 @@ import * as Location from "expo-location";
 
 export const QUEUE_RADIUS_METERS = 500; // rayon max pour rejoindre une file
 
+export interface LocationData {
+  lat: number;
+  lng: number;
+  label: string; // e.g., "Analakely, Antananarivo"
+  city?: string;
+  country?: string;
+}
+
 export const requestLocationPermission = async (): Promise<boolean> => {
   const { status } = await Location.requestForegroundPermissionsAsync();
   return status === "granted";
@@ -21,6 +29,36 @@ export const getCurrentPosition = async (): Promise<{
   return {
     lat: location.coords.latitude,
     lng: location.coords.longitude,
+  };
+};
+
+export const getCurrentLocationWithName = async (): Promise<LocationData | null> => {
+  const granted = await requestLocationPermission();
+  if (!granted) return null;
+
+  const location = await Location.getCurrentPositionAsync({
+    accuracy: Location.Accuracy.Balanced,
+  });
+
+  const { latitude, longitude } = location.coords;
+
+  // Reverse geocoding - get place name from coordinates
+  const [place] = await Location.reverseGeocodeAsync({
+    latitude,
+    longitude,
+  });
+
+  // Build label from available address components
+  const label = [place.street, place.district, place.city, place.region]
+    .filter(Boolean)
+    .join(", ");
+
+  return {
+    lat: latitude,
+    lng: longitude,
+    label: label || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+    city: place.city ?? place.subregion ?? "",
+    country: place.country ?? "",
   };
 };
 

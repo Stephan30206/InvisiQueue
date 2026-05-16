@@ -3,6 +3,9 @@ export type Queue = {
   name: string;
   lat: number;
   lng: number;
+  location_label?: string; // e.g., "Analakely, Antananarivo"
+  city?: string;
+  country?: string;
   created_by: string | null;
   created_at: string;
   // champ calculé côté client
