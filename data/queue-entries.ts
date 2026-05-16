@@ -88,23 +88,37 @@ export const missedTurn = async (entryId: string): Promise<boolean> => {
   const newMissedCount = entry.missed_count + 1;
 
   if (newMissedCount >= 3) {
-    // Exclusion automatique
+    // Exclusion automatique après 3 tours manqués
     await supabase
       .from("queue_entries")
       .update({ status: "excluded", missed_count: newMissedCount })
       .eq("id", entryId);
 
+    // Réajuster les positions pour combler le départ
     await reorderAfterPosition(entry.queue_id, entry.position);
     return true;
   }
 
-  // Reculer de 3 positions
-  const newPosition = entry.position + 3;
+  // Reculer de 3 positions dans la file (§3.6)
+  // Récupérer la position max pour s'assurer que nous ne dépassons pas
+  const { data: maxPosData } = await supabase
+    .from("queue_entries")
+    .select("position")
+    .eq("queue_id", entry.queue_id)
+    .eq("status", "waiting")
+    .order("position", { ascending: false })
+    .limit(1);
+
+  const maxPosition = maxPosData && maxPosData.length > 0 ? maxPosData[0].position : entry.position;
+  const newPosition = Math.min(entry.position + 3, maxPosition + 1);
 
   await supabase
     .from("queue_entries")
     .update({ missed_count: newMissedCount, position: newPosition })
     .eq("id", entryId);
+
+  // Réajuster les positions intermédiaires
+  await reorderQueuePositions(entry.queue_id);
 
   return true;
 };
@@ -148,5 +162,27 @@ const reorderAfterPosition = async (
       .from("queue_entries")
       .update({ position: entry.position - 1 })
       .eq("id", entry.id);
+  }
+};
+
+// Réajuster toutes les positions d'une file pour éviter les trous
+const reorderQueuePositions = async (queueId: string): Promise<void> => {
+  const { data: entries } = await supabase
+    .from("queue_entries")
+    .select("id, position")
+    .eq("queue_id", queueId)
+    .eq("status", "waiting")
+    .order("position", { ascending: true });
+
+  if (!entries || entries.length === 0) return;
+
+  for (let i = 0; i < entries.length; i++) {
+    const expectedPosition = i + 1;
+    if (entries[i].position !== expectedPosition) {
+      await supabase
+        .from("queue_entries")
+        .update({ position: expectedPosition })
+        .eq("id", entries[i].id);
+    }
   }
 };
