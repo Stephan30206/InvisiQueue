@@ -2,8 +2,6 @@ import { getQueueEntries, joinQueue, leaveQueue } from "@/data/queue-entries";
 import { getCurrentPosition, isWithinRadius } from "@/lib/location";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { supabase } from "@/lib/supabase";
-import { useI18n } from "@/hooks/useI18n";
-import { useQueueSubscription } from "@/hooks/useQueueSubscription";
 import { QueueEntry } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -16,8 +14,6 @@ export default function QueueScreen() {
   const router = useRouter();
   const { colorScheme } = useTheme();
   const colors = getThemeColors(colorScheme);
-  const { t } = useI18n();
-  const { entries: realtimeEntries, loading: subLoading } = useQueueSubscription(id!);
 
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [myEntry, setMyEntry] = useState<QueueEntry | null>(null);
@@ -31,31 +27,25 @@ export default function QueueScreen() {
 
   useEffect(() => {
     loadQueue();
+    const channel = supabase
+      .channel(`queue-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "queue_entries", filter: `queue_id=eq.${id}` }, () => loadQueue())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [id]);
-
-  useEffect(() => {
-    if (!subLoading && realtimeEntries.length > 0) {
-      setEntries(realtimeEntries);
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData.user) {
-        const found = realtimeEntries.find((e) => e.user_id === userData.user!.id);
-        setMyEntry(found ?? null);
-      }
-    }
-  }, [realtimeEntries, subLoading]);
 
   useEffect(() => {
     if (!myEntry) return;
     const prev = prevPositionRef.current;
     const current = myEntry.position;
     if (current <= 3 && (prev === null || prev > 3)) {
-      setNotification(t("notifications.almost_your_turn"));
+      setNotification("Votre tour approche ! Plus que 3 personnes avant vous.");
     }
     if (current === 1 && prev !== 1) {
-      setNotification(t("notifications.your_turn"));
+      setNotification("C'est votre tour ! Présentez-vous.");
     }
     prevPositionRef.current = current;
-  }, [myEntry?.position, t]);
+  }, [myEntry?.position]);
 
   const loadQueue = async () => {
     const { data: q } = await supabase.from("queues").select("name").eq("id", id).single();
@@ -72,12 +62,12 @@ export default function QueueScreen() {
   const handleJoin = async () => {
     const position = await getCurrentPosition();
     if (!position) {
-      Alert.alert(t("geo.permission_denied"));
+      Alert.alert("Localisation requise", "Activez votre GPS.");
       return;
     }
     const { data: queueData } = await supabase.from("queues").select("lat, lng").eq("id", id).single();
     if (!queueData || !isWithinRadius(position.lat, position.lng, queueData.lat, queueData.lng)) {
-      Alert.alert(t("queue.distance_error"));
+      Alert.alert("Trop loin", "Vous devez être à moins de 500m de la file.");
       return;
     }
     const { data: userData } = await supabase.auth.getUser();
@@ -101,10 +91,10 @@ export default function QueueScreen() {
   };
 
   const handleLeave = () => {
-    Alert.alert(t("queue.leave"), t("common.confirm"), [
-      { text: t("common.cancel"), style: "cancel" },
+    Alert.alert("Quitter la file", "Êtes-vous sûr ?", [
+      { text: "Annuler", style: "cancel" },
       {
-        text: t("queue.leave"), style: "destructive",
+        text: "Quitter", style: "destructive",
         onPress: async () => {
           if (!myEntry) return;
           await leaveQueue(myEntry.id);
@@ -155,13 +145,13 @@ export default function QueueScreen() {
         {myEntry ? (
           <View style={{ margin: 20, padding: 24, borderRadius: 16, backgroundColor: colors.text, alignItems: "center" }}>
             <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              {t("queue.position")}
+              Votre position
             </Text>
             <Text style={{ color: colors.background, fontSize: 64, fontWeight: "900", lineHeight: 76 }}>
               #{myEntry.position}
             </Text>
             <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginBottom: 16 }}>
-              {peopleAhead === 0 ? t("queue.served") : `${peopleAhead} ${t("queue.people_ahead")}`}
+              {peopleAhead === 0 ? "C'est votre tour !" : `${peopleAhead} personne${peopleAhead! > 1 ? "s" : ""} avant vous`}
             </Text>
             <View style={{ flexDirection: "row", gap: 20, marginBottom: 20 }}>
               <View style={{ alignItems: "center", gap: 4 }}>
@@ -174,17 +164,17 @@ export default function QueueScreen() {
               style={{ borderWidth: 1, borderColor: colors.danger, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, flexDirection: "row", alignItems: "center", gap: 6 }}
             >
               <Feather name="log-out" size={14} color={colors.danger} />
-              <Text style={{ color: colors.danger, fontWeight: "600" }}>{t("queue.leave")}</Text>
+              <Text style={{ color: colors.danger, fontWeight: "600" }}>Quitter la file</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={{ margin: 20, padding: 24, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: "center", backgroundColor: colors.surfaceLight }}>
             <Feather name="users" size={32} color={colors.textMuted} style={{ marginBottom: 12 }} />
             <Text style={{ fontSize: 16, fontWeight: "700", color: colors.text, marginBottom: 4 }}>
-              {entries.length} {t("queue.wait_count")}
+              {entries.length} personne{entries.length !== 1 ? "s" : ""} en attente
             </Text>
             <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 16 }}>
-              ~{entries.length * 3} min
+              Estimation : ~{entries.length * 3} min
             </Text>
             <TouchableOpacity
               onPress={handleJoin}
@@ -194,7 +184,7 @@ export default function QueueScreen() {
               {joining ? (
                 <ActivityIndicator color={colors.background} />
               ) : (
-                <Text style={{ color: colors.background, fontWeight: "700", fontSize: 15 }}>{t("queue.join")}</Text>
+                <Text style={{ color: colors.background, fontWeight: "700", fontSize: 15 }}>Rejoindre la file</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -202,7 +192,7 @@ export default function QueueScreen() {
 
         {/* Liste */}
         <Text style={{ paddingHorizontal: 20, fontSize: 12, fontWeight: "700", color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>
-          {t("queue.nearby")} ({entries.length})
+          File d'attente ({entries.length})
         </Text>
         {entries.map((entry) => (
           <View
@@ -237,17 +227,17 @@ export default function QueueScreen() {
         <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
           <View style={{ backgroundColor: colors.surfaceLight, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, gap: 12 }}>
             <View style={{ width: 36, height: 4, backgroundColor: colors.border, borderRadius: 2, alignSelf: "center", marginBottom: 8 }} />
-            <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>{t("queue.join")}</Text>
-            <Text style={{ fontSize: 13, color: colors.textMuted }}>{t("auth.name_placeholder")}</Text>
+            <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>Rejoindre en tant qu'invité</Text>
+            <Text style={{ fontSize: 13, color: colors.textMuted }}>Saisissez vos informations pour rejoindre la file.</Text>
             <TextInput
-              placeholder={t("auth.name")}
+              placeholder="Votre nom"
               value={guestData.name}
               onChangeText={(text) => setGuestData({ ...guestData, name: text })}
               style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 14, fontSize: 15, marginTop: 4, backgroundColor: colors.background, color: colors.text }}
               placeholderTextColor={colors.textMuted}
             />
             <TextInput
-              placeholder={t("auth.email")}
+              placeholder="Votre email"
               keyboardType="email-address"
               autoCapitalize="none"
               value={guestData.email}
@@ -260,10 +250,10 @@ export default function QueueScreen() {
               disabled={!guestData.name || !guestData.email}
               style={{ backgroundColor: colors.text, padding: 16, borderRadius: 12, alignItems: "center", opacity: !guestData.name || !guestData.email ? 0.5 : 1 }}
             >
-              <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>{t("queue.join")}</Text>
+              <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>Rejoindre</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowGuestModal(false)} style={{ alignItems: "center", padding: 8 }}>
-              <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t("common.cancel")}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 14 }}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
