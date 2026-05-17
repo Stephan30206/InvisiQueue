@@ -1,14 +1,6 @@
 import * as Location from "expo-location";
 
-export const QUEUE_RADIUS_METERS = 500;
-
-export interface LocationData {
-  latitude: number;
-  longitude: number;
-  label: string;
-  city: string;
-  country: string;
-}
+export const QUEUE_RADIUS_METERS = 500; // rayon max pour rejoindre une file
 
 export const requestLocationPermission = async (): Promise<boolean> => {
   const { status } = await Location.requestForegroundPermissionsAsync();
@@ -30,38 +22,6 @@ export const getCurrentPosition = async (): Promise<{
     lat: location.coords.latitude,
     lng: location.coords.longitude,
   };
-};
-
-export const getCurrentPositionWithName = async (): Promise<LocationData | null> => {
-  const granted = await requestLocationPermission();
-  if (!granted) return null;
-
-  try {
-    const location = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
-
-    const { latitude, longitude } = location.coords;
-    const [place] = await Location.reverseGeocodeAsync({
-      latitude,
-      longitude,
-    });
-
-    const label = [place.street, place.district, place.city, place.region]
-      .filter(Boolean)
-      .join(", ");
-
-    return {
-      latitude,
-      longitude,
-      label: label || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-      city: place.city ?? place.subregion ?? "",
-      country: place.country ?? "",
-    };
-  } catch (error) {
-    console.error("Error getting location with name:", error);
-    return null;
-  }
 };
 
 // Calcul de distance Haversine en mètres

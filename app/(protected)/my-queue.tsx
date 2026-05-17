@@ -1,4 +1,5 @@
 import { leaveQueue } from "@/data/queue-entries";
+import { getAddressFromCoords } from "@/lib/geo";
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { QueueEntry } from "@/types";
@@ -65,7 +66,11 @@ export default function MyQueueScreen() {
     const q = (entryData as any).queues;
     if (q) {
       setQueueName(q.name);
-      setQueueAddress(`${q.lat.toFixed(4)}, ${q.lng.toFixed(4)}`);
+      if (q) {
+        setQueueName(q.name);
+        const address = await getAddressFromCoords(q.lat, q.lng);
+        setQueueAddress(address);
+      }
     }
 
     // Total en attente

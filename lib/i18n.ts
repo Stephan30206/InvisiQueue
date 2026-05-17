@@ -1,12 +1,96 @@
-import { I18n } from "i18n-js";
-import * as Localization from "expo-localization";
-import fr from "@/locales/fr";
-import en from "@/locales/en";
+export type Language = 'en' | 'fr';
 
-const i18n = new I18n({ fr, en });
+export const translations = {
+  en: {
+    // Common
+    language: 'English',
+    darkMode: 'Dark Mode',
 
-i18n.locale = Localization.getLocales()[0]?.languageCode ?? "fr";
-i18n.enableFallback = true;
-i18n.defaultLocale = "fr";
+    // Tabs
+    filesTab: 'Files',
+    myQueueTab: 'My Queue',
+    manageTab: 'Manage',
+    profileTab: 'Profile',
 
-export default i18n;
+    // Profile
+    profile: 'Profile',
+    myAccount: 'My Account',
+    personalInformation: 'Personal Information',
+    personalInfoSub: 'Edit your name, email and phone',
+    security: 'Security & Privacy',
+    securitySub: 'Change your password',
+    preferences: 'Preferences',
+    notifications: 'Push Notifications',
+    notificationsSub: 'Queue alerts and updates',
+    darkModeSub: 'Adjust visual appearance',
+    support: 'Support',
+    helpCenter: 'Help Center',
+    helpCenterSub: 'FAQ and technical support',
+    faqPersonalInfo: 'Why aren\'t my personal information and password changes being saved when I log back in?',
+    faqPersonalInfoAnswer: 'Your personal information and password changes are saved in our database. If they don\'t appear after logging back in, try: 1) Clear your app cache, 2) Log out completely and log back in, 3) Check your internet connection. If the issue persists, contact support.',
+    faqKeyboardInput: 'Why are my input fields hidden behind the keyboard?',
+    faqKeyboardInputAnswer: 'When creating an account or logging in, the input fields should remain visible above the keyboard. If they\'re being hidden, try: 1) Update your app to the latest version, 2) Restart the app, 3) Use landscape mode temporarily. We\'re continuously improving keyboard handling.',
+    appVersion: 'App Version',
+    logout: 'Logout',
+    login: 'Login',
+    confirmLogout: 'Logout',
+    confirmLogoutMessage: 'Are you sure you want to logout?',
+    cancel: 'Cancel',
+    verified: 'Verified User',
+    guest: 'Guest',
+    goldClient: 'Gold Client',
+    activeFiles: 'active files',
+    activeFile: 'active file',
+    toManage: 'to manage',
+    termsFooter: 'By using Invisible Queue, you accept our Terms of Use and Privacy Policy.',
+    activeQueuesCount: (count: number) => count > 1 ? `${count} files` : `${count} file`,
+  },
+  fr: {
+    // Common
+    language: 'Français',
+    darkMode: 'Mode Sombre',
+
+    // Tabs
+    filesTab: 'Files',
+    myQueueTab: 'Ma File',
+    manageTab: 'Gestion',
+    profileTab: 'Profil',
+
+    // Profile
+    profile: 'Profil',
+    myAccount: 'Mon compte',
+    personalInformation: 'Informations Personnelles',
+    personalInfoSub: 'Modifier votre nom, email et téléphone',
+    security: 'Sécurité & Confidentialité',
+    securitySub: 'Changer de mot de passe',
+    preferences: 'Préférences',
+    notifications: 'Notifications Push',
+    notificationsSub: 'Alertes de file d\'attente et mises à jour',
+    darkModeSub: 'Ajuster l\'apparence visuelle',
+    support: 'Support',
+    helpCenter: 'Centre d\'aide',
+    helpCenterSub: 'FAQ et support technique',
+    faqPersonalInfo: 'Pourquoi les informations personnelles et le mot de passe que j\'ai changé ne sont pas enregistrés quand je me reconnecte ?',
+    faqPersonalInfoAnswer: 'Vos informations personnelles et vos changements de mot de passe sont sauvegardés dans notre base de données. S\'ils n\'apparaissent pas après votre reconnexion, essayez : 1) Vider le cache de votre application, 2) Vous déconnecter complètement et vous reconnecter, 3) Vérifier votre connexion Internet. Si le problème persiste, contactez le support.',
+    faqKeyboardInput: 'Pourquoi mes champs de saisie sont-ils cachés sous le clavier ?',
+    faqKeyboardInputAnswer: 'Lors de la création d\'un compte ou de la connexion, les champs de saisie doivent rester visibles au-dessus du clavier. S\'ils sont cachés, essayez : 1) Mettre à jour votre application vers la dernière version, 2) Redémarrer l\'application, 3) Utiliser temporairement le mode paysage. Nous améliorons continuellement la gestion du clavier.',
+    appVersion: 'Version de l\'application',
+    logout: 'Se déconnecter',
+    login: 'Se connecter',
+    confirmLogout: 'Déconnexion',
+    confirmLogoutMessage: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+    cancel: 'Annuler',
+    verified: 'Utilisateur Vérifié',
+    guest: 'Invité',
+    goldClient: 'Client Or',
+    activeFiles: 'files actives',
+    activeFile: 'file active',
+    toManage: 'à administrer',
+    termsFooter: 'En utilisant Invisible Queue, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.',
+    activeQueuesCount: (count: number) => count > 1 ? `${count} files` : `${count} file`,
+  },
+};
+
+export const getTranslation = (language: Language, key: keyof typeof translations.en): any => {
+  return translations[language][key as keyof typeof translations[typeof language]];
+};

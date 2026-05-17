@@ -1,7 +1,6 @@
 import { getQueuesNearby } from "@/data/queues";
 import { getCurrentPosition } from "@/lib/location";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
-import { useI18n } from "@/hooks/useI18n";
 import { Queue } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -13,7 +12,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const { colorScheme } = useTheme();
   const colors = getThemeColors(colorScheme);
-  const { t } = useI18n();
   const [queues, setQueues] = useState<Queue[]>([]);
   const [filtered, setFiltered] = useState<Queue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +58,7 @@ export default function HomeScreen() {
       >
         <ActivityIndicator size="large" color={colors.text} />
         <Text style={{ marginTop: 12, color: colors.textMuted, fontSize: 14 }}>
-          {t("geo.locating")}
+          Localisation en cours...
         </Text>
       </SafeAreaView>
     );
@@ -91,10 +89,10 @@ export default function HomeScreen() {
           <Feather name="map-pin" size={28} color={colors.textMuted} />
         </View>
         <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text, textAlign: "center" }}>
-          {t("geo.location_required")}
+          Localisation requise
         </Text>
         <Text style={{ color: colors.textMuted, textAlign: "center", marginTop: 8, lineHeight: 20 }}>
-          {t("geo.location_required_desc")}
+          InvisiQueue a besoin de votre position pour afficher les files proches.
         </Text>
         <TouchableOpacity
           onPress={() => { setLoading(true); loadQueues(); }}
@@ -110,7 +108,7 @@ export default function HomeScreen() {
           }}
         >
           <Feather name="refresh-cw" size={16} color={colors.background} />
-          <Text style={{ color: colors.background, fontWeight: "700" }}>{t("common.retry")}</Text>
+          <Text style={{ color: colors.background, fontWeight: "700" }}>Réessayer</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -142,7 +140,7 @@ export default function HomeScreen() {
           <Feather name="zap" size={18} color={colors.background} />
         </View>
         <Text style={{ fontSize: 17, fontWeight: "700", color: colors.text }}>
-          {t("queue.nearby")}
+          Files à proximité
         </Text>
         <TouchableOpacity
           onPress={() => router.push("/(protected)/create-queue")}
@@ -174,7 +172,7 @@ export default function HomeScreen() {
       >
         <Feather name="search" size={16} color={colors.textMuted} />
         <TextInput
-          placeholder={t("queue.name")}
+          placeholder="Rechercher une file..."
           value={search}
           onChangeText={setSearch}
           style={{ flex: 1, paddingVertical: 12, fontSize: 14, color: colors.text }}
@@ -194,7 +192,7 @@ export default function HomeScreen() {
           fontWeight: "600",
         }}
       >
-        {filtered.length} {filtered.length === 1 ? t("queue.found") : t("queue.found")}s
+        {filtered.length} file{filtered.length !== 1 ? "s" : ""} trouvée{filtered.length !== 1 ? "s" : ""}
       </Text>
 
       <FlatList
@@ -212,7 +210,7 @@ export default function HomeScreen() {
           <View style={{ paddingTop: 60, alignItems: "center" }}>
             <Feather name="inbox" size={40} color={colors.textMuted} />
             <Text style={{ color: colors.textMuted, marginTop: 12, textAlign: "center", fontSize: 15 }}>
-              {t("queue.no_queues")}
+              Aucune file trouvée près de vous.
             </Text>
           </View>
         }
@@ -259,13 +257,13 @@ export default function HomeScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Feather name="users" size={14} color={colors.textMuted} />
                 <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                  {item.waiting_count} {t("queue.waiting")}
+                  {item.waiting_count} en attente
                 </Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Feather name="clock" size={14} color={colors.textMuted} />
                 <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                  ~{(item.waiting_count ?? 0) * 3} {t("queue.estimated_time")}
+                  ~{(item.waiting_count ?? 0) * 3} min
                 </Text>
               </View>
             </View>

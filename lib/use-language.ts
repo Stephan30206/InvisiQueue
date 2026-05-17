@@ -1,12 +1,17 @@
-import { useTheme } from './theme-provider';
 import { translations } from './i18n';
+import { useTheme } from './theme-provider';
+
+type Language = keyof typeof translations;             
+type TranslationKey = keyof typeof translations['en']; 
 
 export function useLanguage() {
   const { language } = useTheme();
 
-  const t = (key: keyof typeof translations.en): any => {
-    return translations[language][key as keyof typeof translations[language]];
+  const lang = language as Language;
+
+  const t = (key: TranslationKey): typeof translations['en'][TranslationKey] => {
+    return translations[lang][key];
   };
 
-  return { t, language };
+  return { t, language: lang };
 }
