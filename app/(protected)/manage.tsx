@@ -1,6 +1,7 @@
 import { callNext, markPresent } from "@/data/queue-entries";
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useMissedTurnCounter } from "@/hooks/useMissedTurnCounter";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -12,10 +13,45 @@ export default function ManageScreen() {
   const [entries, setEntries] = useState<any[]>([]);
   const [queueId, setQueueId] = useState<string | null>(null);
   const [calling, setCalling] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(0);
+
+  const first = entries[0];
+  const { showCounter, secondsLeft, percentage } = useMissedTurnCounter(
+    !!first,
+    first?.is_present ?? false
+  );
 
   useEffect(() => {
     loadQueue();
   }, []);
+
+  // Realtime subscription + auto-refresh toutes les 1 seconde
+  useEffect(() => {
+    if (!queueId) return;
+
+    const channel = supabase
+      .channel(`manage-${queueId}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "queue_entries",
+        filter: `queue_id=eq.${queueId}`,
+      }, () => {
+        fetchEntries(queueId);
+        setLastUpdate(Date.now());
+      })
+      .subscribe();
+
+    const interval = setInterval(() => {
+      fetchEntries(queueId);
+      setLastUpdate(Date.now());
+    }, 1000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [queueId]);
 
   const loadQueue = async () => {
     const { data: user } = await supabase.auth.getUser();
@@ -32,16 +68,6 @@ export default function ManageScreen() {
     if (!queue) return;
     setQueueId(queue.id);
     fetchEntries(queue.id);
-
-    supabase
-      .channel(`manage-${queue.id}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "queue_entries",
-        filter: `queue_id=eq.${queue.id}`,
-      }, () => fetchEntries(queue.id))
-      .subscribe();
   };
 
   const fetchEntries = async (id: string) => {
@@ -113,6 +139,36 @@ export default function ManageScreen() {
           <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 2 }}>
             {first.email}
           </Text>
+
+          {/* Compteur de temps en cas d'absence */}
+          {showCounter && !first.is_present && (
+            <View style={{ marginTop: 12, marginBottom: 8 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "600" }}>
+                  Délai avant recul automatique
+                </Text>
+                <Text style={{ color: "#ff9a9a", fontSize: 14, fontWeight: "800" }}>
+                  {secondsLeft}s
+                </Text>
+              </View>
+              <View
+                style={{
+                  height: 6,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  borderRadius: 3,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={{
+                    height: "100%",
+                    width: `${percentage}%`,
+                    backgroundColor: percentage > 30 ? "#ff6464" : "#ffa500",
+                  }}
+                />
+              </View>
+            </View>
+          )}
 
           {/* Indicateur tours manqués */}
           {first.missed_turns > 0 && (

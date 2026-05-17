@@ -2,6 +2,7 @@ import { getQueueEntries, joinQueue, leaveQueue } from "@/data/queue-entries";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { supabase } from "@/lib/supabase";
 import { useGeoAccess } from "@/hooks/useGeoAccess";
+import { useMissedTurnCounter } from "@/hooks/useMissedTurnCounter";
 import { QueueEntry } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -27,15 +28,30 @@ export default function QueueScreen() {
   const prevPositionRef = useRef<number | null>(null);
 
   const { userLocation, canJoin: canJoinByDistance, distance, loading: geoLoading, permissionDenied } = useGeoAccess(queueCoords?.lat, queueCoords?.lng);
+  const { showCounter, secondsLeft, percentage } = useMissedTurnCounter(
+    myEntry?.position === 1,
+    myEntry?.is_present ?? false
+  );
 
   useEffect(() => {
     loadQueue();
     const channel = supabase
       .channel(`queue-${id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "queue_entries", filter: `queue_id=eq.${id}` }, () => loadQueue())
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "queue_entries", filter: `queue_id=eq.${id}` },
+        () => loadQueue()
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [id]);
+
+  // Rafraîchissement automatique des données toutes les 2 secondes pour sync temps réel
+  useEffect(() => {
+    if (!myEntry) return;
+    const interval = setInterval(() => loadQueue(), 2000);
+    return () => clearInterval(interval);
+  }, [myEntry?.id]);
 
   useEffect(() => {
     if (!myEntry) return;
@@ -193,6 +209,40 @@ export default function QueueScreen() {
             <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginBottom: 16 }}>
               {peopleAhead === 0 ? "C'est votre tour !" : `${peopleAhead} personne${peopleAhead! > 1 ? "s" : ""} avant vous`}
             </Text>
+
+            {/* Compteur de temps si c'est votre tour */}
+            {showCounter && myEntry.position === 1 && !myEntry.is_present && (
+              <View style={{ width: "100%", marginBottom: 16, paddingHorizontal: 12, paddingVertical: 12, backgroundColor: "rgba(255,100,100,0.15)", borderRadius: 10 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, fontWeight: "600" }}>
+                    ⚠️ Confirmez votre présence
+                  </Text>
+                  <Text style={{ color: "#ff9a9a", fontSize: 14, fontWeight: "800" }}>
+                    {secondsLeft}s
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    height: 4,
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <View
+                    style={{
+                      height: "100%",
+                      width: `${percentage}%`,
+                      backgroundColor: percentage > 30 ? "#ff6464" : "#ffa500",
+                    }}
+                  />
+                </View>
+                <Text style={{ color: "rgba(255,150,150,0.8)", fontSize: 11, marginTop: 6 }}>
+                  Sinon, vous reculerez automatiquement de 3 positions.
+                </Text>
+              </View>
+            )}
+
             <View style={{ flexDirection: "row", gap: 20, marginBottom: 20 }}>
               <View style={{ alignItems: "center", gap: 4 }}>
                 <Feather name="clock" size={16} color="rgba(255,255,255,0.6)" />
