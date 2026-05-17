@@ -2,6 +2,7 @@ import { createQueue } from "@/data/queues";
 import { getCurrentPosition } from "@/lib/location";
 import { supabase } from "@/lib/supabase";
 import { useTheme, getThemeColors } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { Feather } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
@@ -10,15 +11,17 @@ import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } fro
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
-const schema = z.object({
-  name: z.string().min(3, "Le nom doit avoir au moins 3 caractères"),
-});
-type Schema = z.infer<typeof schema>;
-
 export default function CreateQueueScreen() {
   const router = useRouter();
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
+
+  const schema = z.object({
+    name: z.string().min(3, t("createqueue.queue_name_error")),
+  });
+  type Schema = z.infer<typeof schema>;
+
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: { name: "" },
@@ -28,20 +31,20 @@ export default function CreateQueueScreen() {
   const handleCreate = async (data: Schema) => {
     const position = await getCurrentPosition();
     if (!position) {
-      Alert.alert("Localisation requise", "Activez votre GPS pour créer une file.");
+      Alert.alert(t("createqueue.location_required"), t("createqueue.location_required_message"));
       return;
     }
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
-      Alert.alert("Erreur", "Vous devez être connecté.");
+      Alert.alert(t("createqueue.error_title"), t("createqueue.not_authenticated"));
       return;
     }
     const queue = await createQueue(data.name, position.lat, position.lng, userData.user.id);
     if (!queue) {
-      Alert.alert("Erreur", "Impossible de créer la file.");
+      Alert.alert(t("createqueue.error_title"), t("createqueue.error_create"));
       return;
     }
-    Alert.alert("Succès !", `File "${data.name}" créée avec succès.`, [
+    Alert.alert(t("createqueue.success_title"), t("createqueue.success_message", { name: data.name }), [
       { text: "OK", onPress: () => router.back() },
     ]);
   };
@@ -54,19 +57,19 @@ export default function CreateQueueScreen() {
 
       <View style={{ paddingHorizontal: 24 }}>
         <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text, marginBottom: 6 }}>
-          Créer une file
+          {t("createqueue.title")}
         </Text>
         <Text style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32, lineHeight: 20 }}>
-          La file sera créée à votre position GPS actuelle.
+          {t("createqueue.description")}
         </Text>
 
         <View style={{ backgroundColor: colors.borderLight, borderRadius: 12, padding: 14, flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 24 }}>
           <Feather name="map-pin" size={16} color={colors.textSecondary} />
-          <Text style={{ fontSize: 13, color: colors.textSecondary }}>Position GPS actuelle détectée</Text>
+          <Text style={{ fontSize: 13, color: colors.textSecondary }}>{t("createqueue.current_location_detected")}</Text>
         </View>
 
         <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6 }}>
-          Nom de la file
+          {t("createqueue.queue_name_label")}
         </Text>
         <Controller
           control={form.control}
@@ -76,7 +79,7 @@ export default function CreateQueueScreen() {
               <TextInput
                 value={value}
                 onChangeText={onChange}
-                placeholder="Ex: Guichet Banque BFV - Matin"
+                placeholder={t("createqueue.queue_name_placeholder")}
                 style={{
                   borderWidth: 1,
                   borderColor: error ? colors.danger : colors.border,
@@ -111,7 +114,7 @@ export default function CreateQueueScreen() {
             <ActivityIndicator color={colors.background} />
           ) : (
             <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>
-              Créer la file
+              {t("createqueue.create_button")}
             </Text>
           )}
         </TouchableOpacity>

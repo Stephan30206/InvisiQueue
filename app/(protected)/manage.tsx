@@ -1,6 +1,7 @@
 import { callNext, markPresent } from "@/data/queue-entries";
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { useMissedTurnCounter } from "@/hooks/useMissedTurnCounter";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ManageScreen() {
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
   const [entries, setEntries] = useState<any[]>([]);
   const [queueId, setQueueId] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export default function ManageScreen() {
 
   const handleMarkPresent = async (entryId: string, name: string) => {
     await markPresent(entryId);
-    Alert.alert("✓ Présence confirmée", `${name} est marqué comme présent.`);
+    Alert.alert(t("manage.confirmed_present"), t("manage.is_marked_present", { name }));
   };
 
   return (
@@ -101,10 +103,12 @@ export default function ManageScreen() {
       {/* Header */}
       <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
         <Text style={{ fontSize: 22, fontWeight: "800", color: colors.text }}>
-          Gestion de la file
+          {t("manage.title")}
         </Text>
         <Text style={{ color: colors.textMuted, marginTop: 4 }}>
-          {entries.length} personne{entries.length > 1 ? "s" : ""} en attente
+          {entries.length === 1
+            ? t("manage.people_waiting", { count: 1 })
+            : t("manage.people_waiting_plural", { count: entries.length })}
         </Text>
       </View>
 
@@ -129,7 +133,7 @@ export default function ManageScreen() {
               marginBottom: 8,
             }}
           >
-            Prochain
+            {t("manage.next")}
           </Text>
           <Text style={{ color: colors.background, fontSize: 22, fontWeight: "800" }}>
             {first.name}
@@ -143,7 +147,7 @@ export default function ManageScreen() {
             <View style={{ marginTop: 12, marginBottom: 8 }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "600" }}>
-                  Délai avant recul automatique
+                  {t("manage.delay_before_automatic_decline")}
                 </Text>
                 <Text style={{ color: "#ff9a9a", fontSize: 14, fontWeight: "800" }}>
                   {secondsLeft}s
@@ -183,9 +187,11 @@ export default function ManageScreen() {
             >
               <Feather name="alert-triangle" size={14} color="#ff6464" />
               <Text style={{ color: "#ff6464", fontSize: 12, fontWeight: "600" }}>
-                {first.missed_turns} tour{first.missed_turns > 1 ? "s" : ""} manqué
-                {first.missed_turns > 1 ? "s" : ""} — encore{" "}
-                {3 - first.missed_turns} avant exclusion
+                {t("manage.missed_turns", {
+                  missed: first.missed_turns,
+                  plural: first.missed_turns > 1 ? "s" : "",
+                  remaining: 3 - first.missed_turns,
+                })}
               </Text>
             </View>
           )}
@@ -219,7 +225,7 @@ export default function ManageScreen() {
                   fontSize: 13,
                 }}
               >
-                {first.is_present ? "Présent ✓" : "Marquer présent"}
+                {first.is_present ? t("manage.present") : t("manage.mark_present")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -243,7 +249,7 @@ export default function ManageScreen() {
         >
           <Feather name="skip-forward" size={18} color={colors.background} />
           <Text style={{ color: colors.background, fontWeight: "800", fontSize: 16 }}>
-            {calling ? "Traitement..." : "Appeler le suivant"}
+            {calling ? t("manage.processing") : t("manage.call_next")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -263,7 +269,7 @@ export default function ManageScreen() {
             marginBottom: 12,
           }}
         >
-          File d'attente
+          {t("manage.queue_list")}
         </Text>
 
         {entries.map((entry) => (
@@ -345,7 +351,7 @@ export default function ManageScreen() {
           <View style={{ alignItems: "center", paddingTop: 40 }}>
             <Feather name="check-circle" size={40} color={colors.textMuted} />
             <Text style={{ color: colors.textMuted, marginTop: 12, fontSize: 15 }}>
-              File vide — tout le monde a été servi
+              {t("manage.queue_empty")}
             </Text>
           </View>
         )}

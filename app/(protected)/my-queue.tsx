@@ -2,6 +2,7 @@ import { leaveQueue } from "@/data/queue-entries";
 import { getAddressFromCoords } from "@/lib/geo";
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { QueueEntry } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +13,7 @@ type HistoryItem = { time: string; label: string; done: boolean };
 
 export default function MyQueueScreen() {
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
   const [myEntry, setMyEntry] = useState<QueueEntry | null>(null);
   const [totalWaiting, setTotalWaiting] = useState(0);
@@ -34,10 +36,10 @@ export default function MyQueueScreen() {
     const prev = prevPositionRef.current;
     const current = myEntry.position;
     if (current <= 3 && (prev === null || prev > 3)) {
-      setNotification("Vous êtes 3ème dans la file. Veuillez vous rapprocher de l'entrée du magasin.");
+      setNotification(t("myqueue.approaching_notification"));
     }
     if (current === 1 && prev !== 1) {
-      setNotification("C'est votre tour ! Présentez-vous au comptoir.");
+      setNotification(t("myqueue.your_turn_notification"));
     }
     prevPositionRef.current = current;
   }, [myEntry?.position]);
@@ -88,20 +90,20 @@ export default function MyQueueScreen() {
       d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
     const items: HistoryItem[] = [
-      { time: fmt(joinedAt), label: "Inscription à la file", done: true },
+      { time: fmt(joinedAt), label: t("myqueue.joined"), done: true },
       {
         time: fmt(new Date(joinedAt.getTime() + 60000)),
-        label: "Confirmation reçue",
+        label: t("myqueue.confirmation_received"),
         done: true,
       },
       {
         time: fmt(new Date(joinedAt.getTime() + 420000)),
-        label: "Moitié du temps écoulée",
+        label: t("myqueue.halfway"),
         done: entryData.position <= Math.ceil(totalWaiting / 2),
       },
       {
         time: fmt(new Date(joinedAt.getTime() + 720000)),
-        label: "Proche du comptoir",
+        label: t("myqueue.approaching_counter"),
         done: entryData.position <= 3,
       },
     ];
@@ -130,10 +132,10 @@ export default function MyQueueScreen() {
   };
 
   const handleLeave = () => {
-    Alert.alert("Quitter la file", "Êtes-vous sûr de vouloir quitter ?", [
-      { text: "Annuler", style: "cancel" },
+    Alert.alert(t("myqueue.leave_confirm_title"), t("myqueue.leave_confirm_message"), [
+      { text: t("myqueue.cancel"), style: "cancel" },
       {
-        text: "Quitter",
+        text: t("myqueue.leave_confirm_button"),
         style: "destructive",
         onPress: async () => {
           if (myEntry) {
@@ -174,10 +176,10 @@ export default function MyQueueScreen() {
           <Feather name="bell" size={32} color={colors.textMuted} />
         </View>
         <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text, textAlign: "center" }}>
-          Vous n'êtes dans aucune file
+          {t("myqueue.no_queue")}
         </Text>
         <Text style={{ color: colors.textMuted, textAlign: "center", marginTop: 8, lineHeight: 20 }}>
-          Rejoignez une file depuis l'onglet "Files" pour suivre votre position ici.
+          {t("myqueue.no_queue_desc")}
         </Text>
       </SafeAreaView>
     );
@@ -209,7 +211,7 @@ export default function MyQueueScreen() {
           <Feather name="zap" size={18} color={colors.background} />
         </View>
         <Text style={{ fontSize: 17, fontWeight: "700", color: colors.text }}>
-          Ma position
+          {t("myqueue.my_position")}
         </Text>
         <TouchableOpacity onPress={handleShare}>
           <Feather name="share-2" size={22} color={colors.text} />
@@ -235,7 +237,7 @@ export default function MyQueueScreen() {
             <Feather name="bell" size={16} color={colors.background} style={{ marginTop: 2 }} />
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.background, fontWeight: "700", fontSize: 13 }}>
-                Notification d'approche
+                {t("myqueue.approaching_notification")}
               </Text>
               <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 2, lineHeight: 16 }}>
                 {notification}
@@ -305,7 +307,7 @@ export default function MyQueueScreen() {
               {estimatedMin} min
             </Text>
             <Text style={{ fontSize: 11, color: colors.textMuted, textTransform: "uppercase", fontWeight: "600" }}>
-              Attente estimée
+              {t("myqueue.estimated_wait")}
             </Text>
           </View>
           <View
@@ -322,10 +324,10 @@ export default function MyQueueScreen() {
           >
             <Feather name="users" size={18} color={colors.text} />
             <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>
-              {peopleAhead} pers.
+              {peopleAhead}
             </Text>
             <Text style={{ fontSize: 11, color: colors.textMuted, textTransform: "uppercase", fontWeight: "600" }}>
-              Devant vous
+              {t("myqueue.people_ahead")}
             </Text>
           </View>
         </View>
@@ -334,7 +336,7 @@ export default function MyQueueScreen() {
         <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
             <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: "600" }}>
-              Progression totale
+              {t("myqueue.total_progress")}
             </Text>
             <Text style={{ fontSize: 12, color: colors.text, fontWeight: "700" }}>
               {progress}%
@@ -368,7 +370,7 @@ export default function MyQueueScreen() {
           >
             <Feather name="share-2" size={16} color={colors.background} />
             <Text style={{ color: colors.background, fontWeight: "700", fontSize: 15 }}>
-              Partager ma position
+              {t("myqueue.share_position")}
             </Text>
           </TouchableOpacity>
 
@@ -388,7 +390,7 @@ export default function MyQueueScreen() {
           >
             <Feather name="log-out" size={16} color={colors.danger} />
             <Text style={{ color: colors.danger, fontWeight: "600", fontSize: 15 }}>
-              Quitter la file
+              {t("myqueue.leave_queue")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -396,7 +398,7 @@ export default function MyQueueScreen() {
         {/* Historique */}
         <View style={{ paddingHorizontal: 20, marginBottom: 32 }}>
           <Text style={{ fontSize: 13, fontWeight: "700", color: colors.text, marginBottom: 16, textTransform: "uppercase", letterSpacing: 0.5 }}>
-            Historique de ma file
+            {t("myqueue.queue_history")}
           </Text>
           {history.map((item, index) => (
             <View key={index} style={{ flexDirection: "row", gap: 12, marginBottom: 14 }}>

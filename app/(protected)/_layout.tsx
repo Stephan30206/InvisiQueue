@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/NotificationBell";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { useLanguage } from "@/lib/use-language";
 import { Feather } from "@expo/vector-icons";
@@ -27,7 +28,21 @@ export default function ProtectedLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          fontWeight: "700",
+          fontSize: 16,
+        },
+        headerStyle: {
+          backgroundColor: colors.background,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        headerRight: () => <NotificationBell />,
+        headerRightContainerStyle: {
+          paddingRight: 16,
+        },
         tabBarStyle: {
           backgroundColor: colors.tabBar,
           borderTopWidth: 1,

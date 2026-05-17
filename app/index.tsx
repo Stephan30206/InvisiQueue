@@ -1,5 +1,6 @@
 import { getCurrentPosition } from "@/lib/location";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -11,6 +12,7 @@ const { width } = Dimensions.get("window");
 const OnboardingScreen = () => {
   const router = useRouter();
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
 
   const handleAuthorizeLocation = async () => {
@@ -55,8 +57,7 @@ const OnboardingScreen = () => {
             paddingHorizontal: 16,
           }}
         >
-          Gérez votre place dans la file d'attente à distance et recevez une
-          notification quand c'est votre tour.
+          {t("onboarding.app_description")}
         </Text>
       </View>
 
@@ -86,10 +87,10 @@ const OnboardingScreen = () => {
           }}
         >
           <Text style={{ color: colors.background, fontSize: 18, fontWeight: "700", paddingLeft: 8}}>
-            Votre temps est précieux.
+            {t("onboarding.tagline_1")}
           </Text>
           <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 1 , paddingLeft: 8, paddingBottom: 1}}>
-            L'attente devient invisible et sereine.
+            {t("onboarding.tagline_2")}
           </Text>
         </View>
       </View>
@@ -99,13 +100,13 @@ const OnboardingScreen = () => {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Feather name="map-pin" size={18} color={colors.text} />
           <Text style={{ fontSize: 15, color: colors.text }}>
-            Trouvez les files à proximité
+            {t("onboarding.feature_nearby_queues")}
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Feather name="navigation" size={18} color={colors.text} />
           <Text style={{ fontSize: 15, color: colors.text }}>
-            Suivez votre position en temps réel
+            {t("onboarding.feature_real_time")}
           </Text>
         </View>
       </View>
@@ -125,7 +126,7 @@ const OnboardingScreen = () => {
           }}
         >
           <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>
-            Autoriser la localisation
+            {t("onboarding.authorize_location")}
           </Text>
           <Feather name="arrow-right" size={18} color={colors.background} />
         </TouchableOpacity>
@@ -142,7 +143,7 @@ const OnboardingScreen = () => {
           }}
         >
           <Text style={{ color: colors.text, fontWeight: "600", fontSize: 15 }}>
-            Continuer en tant qu'invité
+            {t("onboarding.continue_as_guest")}
           </Text>
         </TouchableOpacity>
 
@@ -151,8 +152,8 @@ const OnboardingScreen = () => {
           style={{ alignItems: "center", padding: 8 }}
         >
           <Text style={{ color: colors.textMuted, fontSize: 14 }}>
-            Déjà un compte ?{" "}
-            <Text style={{ color: colors.text, fontWeight: "700" }}>Connexion</Text>
+            {t("onboarding.already_account")}{" "}
+            <Text style={{ color: colors.text, fontWeight: "700" }}>{t("onboarding.login")}</Text>
           </Text>
         </TouchableOpacity>
       </View>

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { Feather } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
@@ -9,26 +10,30 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, Te
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
-const registerSchema = z
-  .object({
-    email: z.string().email("Email invalide"),
-    password: z.string().min(6, "Minimum 6 caractères"),
-    confirmPassword: z.string().min(6, "Minimum 6 caractères"),
-  })
-  .refine((d) => d.password === d.confirmPassword, {
-    message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
-  });
+function createRegisterSchema(t: any) {
+  return z
+    .object({
+      email: z.string().email(t("registerForm.email_error")),
+      password: z.string().min(6, t("registerForm.password_error")),
+      confirmPassword: z.string().min(6, t("registerForm.password_error")),
+    })
+    .refine((d) => d.password === d.confirmPassword, {
+      message: t("registerForm.confirm_password_error"),
+      path: ["confirmPassword"],
+    });
+}
 
-type RegisterSchema = z.infer<typeof registerSchema>;
+type RegisterSchema = z.infer<ReturnType<typeof createRegisterSchema>>;
 
 const RegisterScreen = () => {
   const router = useRouter();
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const registerSchema = createRegisterSchema(t);
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
     defaultValues: { email: "", password: "", confirmPassword: "" },
@@ -44,8 +49,8 @@ const RegisterScreen = () => {
       form.setError("email", {
         message:
           error.code === "email_exists"
-            ? "Cet email est déjà utilisé."
-            : "Une erreur est survenue.",
+            ? t("registerForm.email_exists_error")
+            : t("registerForm.generic_error"),
       });
       return;
     }
@@ -133,30 +138,30 @@ const RegisterScreen = () => {
         </View>
 
         <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text, marginBottom: 6 }}>
-          Créer un compte
+          {t("registerForm.title")}
         </Text>
         <Text style={{ fontSize: 14, color: colors.textMuted, marginBottom: 28 }}>
-          Rejoignez InvisiQueue
+          {t("registerForm.subtitle")}
         </Text>
 
         <Field
           name="email"
-          label="Email"
-          placeholder="votre@email.com"
+          label={t("registerForm.email_label")}
+          placeholder={t("registerForm.email_placeholder")}
           keyboard="email-address"
         />
         <Field
           name="password"
-          label="Mot de passe"
-          placeholder="••••••••"
+          label={t("registerForm.password_label")}
+          placeholder={t("registerForm.password_placeholder")}
           secure
           showToggle={showPwd}
           onToggle={() => setShowPwd(!showPwd)}
         />
         <Field
           name="confirmPassword"
-          label="Confirmer le mot de passe"
-          placeholder="••••••••"
+          label={t("registerForm.confirm_password_label")}
+          placeholder={t("registerForm.confirm_password_placeholder")}
           secure
           showToggle={showConfirm}
           onToggle={() => setShowConfirm(!showConfirm)}
@@ -178,7 +183,7 @@ const RegisterScreen = () => {
             <ActivityIndicator color={colors.background} />
           ) : (
             <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>
-              S'inscrire
+              {t("registerForm.submit_button")}
             </Text>
           )}
         </TouchableOpacity>
@@ -188,8 +193,8 @@ const RegisterScreen = () => {
           style={{ alignItems: "center", marginTop: 20 }}
         >
           <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-            Déjà un compte ?{" "}
-            <Text style={{ color: colors.text, fontWeight: "700" }}>Se connecter</Text>
+            {t("registerForm.already_account")}{" "}
+            <Text style={{ color: colors.text, fontWeight: "700" }}>{t("registerForm.sign_in")}</Text>
           </Text>
         </TouchableOpacity>
           </View>

@@ -1,5 +1,6 @@
 import { login } from "@/data/users";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -8,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const LoginScreen = () => {
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
   const [data, setData] = useState({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,7 @@ const LoginScreen = () => {
     setLoading(true);
     const user = await login(data);
     if (!user) {
-      setError("Email ou mot de passe incorrect.");
+      setError(t("loginForm.error_invalid"));
       setLoading(false);
       return;
     }
@@ -54,18 +56,18 @@ const LoginScreen = () => {
         </View>
 
         <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text, marginBottom: 6 }}>
-          Connexion
+          {t("loginForm.title")}
         </Text>
         <Text style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32 }}>
-          Bon retour sur InvisiQueue
+          {t("loginForm.subtitle")}
         </Text>
 
         {/* Email */}
         <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6 }}>
-          Email
+          {t("loginForm.email_label")}
         </Text>
         <TextInput
-          placeholder="votre@email.com"
+          placeholder={t("loginForm.email_placeholder")}
           keyboardType="email-address"
           autoCapitalize="none"
           value={data.email}
@@ -85,7 +87,7 @@ const LoginScreen = () => {
 
         {/* Password */}
         <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6 }}>
-          Mot de passe
+          {t("loginForm.password_label")}
         </Text>
         <View
           style={{
@@ -99,7 +101,7 @@ const LoginScreen = () => {
           }}
         >
           <TextInput
-            placeholder="••••••••"
+            placeholder={t("loginForm.password_placeholder")}
             secureTextEntry={!showPassword}
             value={data.password}
             onChangeText={(text) => setData({ ...data, password: text })}
@@ -144,7 +146,7 @@ const LoginScreen = () => {
             <ActivityIndicator color={colors.background} />
           ) : (
             <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>
-              Se connecter
+              {t("loginForm.submit_button")}
             </Text>
           )}
         </TouchableOpacity>
@@ -154,8 +156,8 @@ const LoginScreen = () => {
           style={{ alignItems: "center", marginTop: 20 }}
         >
           <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-            Pas de compte ?{" "}
-            <Text style={{ color: colors.text, fontWeight: "700" }}>S'inscrire</Text>
+            {t("loginForm.no_account")}{" "}
+            <Text style={{ color: colors.text, fontWeight: "700" }}>{t("loginForm.sign_up")}</Text>
           </Text>
         </TouchableOpacity>
           </View>

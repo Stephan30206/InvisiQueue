@@ -1,5 +1,6 @@
 import { getQueueEntries, joinQueue, leaveQueue } from "@/data/queue-entries";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
+import { useLanguage } from "@/lib/use-language";
 import { supabase } from "@/lib/supabase";
 import { useGeoAccess } from "@/hooks/useGeoAccess";
 import { useMissedTurnCounter } from "@/hooks/useMissedTurnCounter";
@@ -14,6 +15,7 @@ export default function QueueScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { colorScheme } = useTheme();
+  const { t } = useLanguage();
   const colors = getThemeColors(colorScheme);
 
   const [entries, setEntries] = useState<QueueEntry[]>([]);
@@ -46,7 +48,6 @@ export default function QueueScreen() {
     return () => { supabase.removeChannel(channel); };
   }, [id]);
 
-  // Rafraîchissement automatique des données toutes les 2 secondes pour sync temps réel
   useEffect(() => {
     if (!myEntry) return;
     const interval = setInterval(() => loadQueue(), 2000);
@@ -58,13 +59,13 @@ export default function QueueScreen() {
     const prev = prevPositionRef.current;
     const current = myEntry.position;
     if (current <= 3 && (prev === null || prev > 3)) {
-      setNotification("Votre tour approche ! Plus que 3 personnes avant vous.");
+      setNotification(t("queuedetail.turn_approaching"));
     }
     if (current === 1 && prev !== 1) {
-      setNotification("C'est votre tour ! Présentez-vous.");
+      setNotification(t("queuedetail.turn_now"));
     }
     prevPositionRef.current = current;
-  }, [myEntry?.position]);
+  }, [myEntry?.position, t]);
 
   const loadQueue = async () => {
     const { data: q } = await supabase.from("queues").select("name, lat, lng").eq("id", id).single();
@@ -85,12 +86,12 @@ export default function QueueScreen() {
     if (geoLoading) return;
 
     if (permissionDenied) {
-      Alert.alert("Géolocalisation refusée", "Activez-la dans les paramètres.");
+      Alert.alert(t("queuedetail.geolocation_denied"), t("queuedetail.geolocation_denied_message"));
       return;
     }
 
     if (!canJoinByDistance) {
-      Alert.alert("Trop loin", "Vous devez être à moins de 500m de la file.");
+      Alert.alert(t("queuedetail.too_far"), t("queuedetail.too_far_message"));
       return;
     }
 
@@ -115,10 +116,10 @@ export default function QueueScreen() {
   };
 
   const handleLeave = () => {
-    Alert.alert("Quitter la file", "Êtes-vous sûr ?", [
-      { text: "Annuler", style: "cancel" },
+    Alert.alert(t("queuedetail.leave_confirm_title"), t("queuedetail.leave_confirm_message"), [
+      { text: t("queuedetail.cancel"), style: "cancel" },
       {
-        text: "Quitter", style: "destructive",
+        text: t("queuedetail.leave_confirm_button"), style: "destructive",
         onPress: async () => {
           if (!myEntry) return;
           await leaveQueue(myEntry.id);
@@ -157,7 +158,7 @@ export default function QueueScreen() {
         >
           <Feather name="bell" size={16} color={colors.background} style={{ marginTop: 2 }} />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.background, fontWeight: "700", fontSize: 13 }}>Notification</Text>
+            <Text style={{ color: colors.background, fontWeight: "700", fontSize: 13 }}>{t("queuedetail.notification_title")}</Text>
             <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 2 }}>{notification}</Text>
           </View>
           <Feather name="x" size={14} color="rgba(255,255,255,0.6)" />
@@ -171,11 +172,11 @@ export default function QueueScreen() {
             {geoLoading ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <ActivityIndicator size="small" color={colors.text} />
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>Localisation en cours...</Text>
+                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t("queuedetail.locating")}</Text>
               </View>
             ) : permissionDenied ? (
               <Text style={{ color: colors.danger, fontSize: 13, fontWeight: "600" }}>
-                Géolocalisation refusée. Activez-la dans les paramètres.
+                {t("queuedetail.geolocation_denied")}. {t("queuedetail.geolocation_denied_message")}
               </Text>
             ) : userLocation ? (
               <View style={{ gap: 8 }}>
@@ -188,8 +189,8 @@ export default function QueueScreen() {
                 {distance !== null && (
                   <Text style={{ fontSize: 12, color: canJoinByDistance ? colors.text : colors.danger, fontWeight: "600" }}>
                     {canJoinByDistance
-                      ? `✓ À ${distance}m — Accès autorisé`
-                      : `✗ À ${distance}m — Trop éloigné (max 500m)`}
+                      ? t("queuedetail.access_allowed", { distance })
+                      : t("queuedetail.access_denied", { distance })}
                   </Text>
                 )}
               </View>
@@ -201,13 +202,17 @@ export default function QueueScreen() {
         {myEntry ? (
           <View style={{ margin: 20, padding: 24, borderRadius: 16, backgroundColor: colors.text, alignItems: "center" }}>
             <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Votre position
+              {t("queuedetail.your_position")}
             </Text>
             <Text style={{ color: colors.background, fontSize: 64, fontWeight: "900", lineHeight: 76 }}>
               #{myEntry.position}
             </Text>
             <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginBottom: 16 }}>
-              {peopleAhead === 0 ? "C'est votre tour !" : `${peopleAhead} personne${peopleAhead! > 1 ? "s" : ""} avant vous`}
+              {peopleAhead === 0
+                ? t("queuedetail.its_your_turn")
+                : (peopleAhead === 1
+                  ? t("queuedetail.people_ahead", { count: 1 })
+                  : t("queuedetail.people_ahead_plural", { count: peopleAhead }))}
             </Text>
 
             {/* Compteur de temps si c'est votre tour */}
@@ -215,7 +220,7 @@ export default function QueueScreen() {
               <View style={{ width: "100%", marginBottom: 16, paddingHorizontal: 12, paddingVertical: 12, backgroundColor: "rgba(255,100,100,0.15)", borderRadius: 10 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                   <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, fontWeight: "600" }}>
-                    ⚠️ Confirmez votre présence
+                    {t("queuedetail.confirm_presence")}
                   </Text>
                   <Text style={{ color: "#ff9a9a", fontSize: 14, fontWeight: "800" }}>
                     {secondsLeft}s
@@ -238,7 +243,7 @@ export default function QueueScreen() {
                   />
                 </View>
                 <Text style={{ color: "rgba(255,150,150,0.8)", fontSize: 11, marginTop: 6 }}>
-                  Sinon, vous reculerez automatiquement de 3 positions.
+                  {t("queuedetail.auto_decline_warning")}
                 </Text>
               </View>
             )}
@@ -246,7 +251,7 @@ export default function QueueScreen() {
             <View style={{ flexDirection: "row", gap: 20, marginBottom: 20 }}>
               <View style={{ alignItems: "center", gap: 4 }}>
                 <Feather name="clock" size={16} color="rgba(255,255,255,0.6)" />
-                <Text style={{ color: colors.background, fontWeight: "700" }}>~{(peopleAhead ?? 0) * 3} min</Text>
+                <Text style={{ color: colors.background, fontWeight: "700" }}>{t("queuedetail.estimated_time", { minutes: (peopleAhead ?? 0) * 3 })}</Text>
               </View>
             </View>
             <TouchableOpacity
@@ -254,17 +259,19 @@ export default function QueueScreen() {
               style={{ borderWidth: 1, borderColor: colors.danger, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, flexDirection: "row", alignItems: "center", gap: 6 }}
             >
               <Feather name="log-out" size={14} color={colors.danger} />
-              <Text style={{ color: colors.danger, fontWeight: "600" }}>Quitter la file</Text>
+              <Text style={{ color: colors.danger, fontWeight: "600" }}>{t("queuedetail.leave_queue")}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={{ margin: 20, padding: 24, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: "center", backgroundColor: colors.surfaceLight }}>
             <Feather name="users" size={32} color={colors.textMuted} style={{ marginBottom: 12 }} />
             <Text style={{ fontSize: 16, fontWeight: "700", color: colors.text, marginBottom: 4 }}>
-              {entries.length} personne{entries.length !== 1 ? "s" : ""} en attente
+              {entries.length === 1
+                ? t("queuedetail.queue_wait", { count: 1 })
+                : t("queuedetail.queue_wait_plural", { count: entries.length })}
             </Text>
             <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 16 }}>
-              Estimation : ~{entries.length * 3} min
+              {t("queuedetail.estimated_time", { minutes: entries.length * 3 })}
             </Text>
             <TouchableOpacity
               onPress={handleJoin}
@@ -275,7 +282,7 @@ export default function QueueScreen() {
                 <ActivityIndicator color={colors.background} />
               ) : (
                 <Text style={{ color: canJoinByDistance ? colors.background : colors.textMuted, fontWeight: "700", fontSize: 15, textAlign: "center" }}>
-                  {canJoinByDistance ? "Rejoindre la file" : "Trop éloigné pour rejoindre"}
+                  {canJoinByDistance ? t("queuedetail.join_queue") : t("queuedetail.too_far_to_join")}
                 </Text>
               )}
             </TouchableOpacity>
@@ -284,7 +291,7 @@ export default function QueueScreen() {
 
         {/* Liste */}
         <Text style={{ paddingHorizontal: 20, fontSize: 12, fontWeight: "700", color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>
-          File d'attente ({entries.length})
+          {t("queuedetail.queue_list", { count: entries.length })}
         </Text>
         {entries.map((entry) => (
           <View
@@ -302,11 +309,11 @@ export default function QueueScreen() {
               </Text>
             </View>
             <Text style={{ flex: 1, fontSize: 14, color: colors.text, fontWeight: myEntry?.id === entry.id ? "700" : "400" }}>
-              {myEntry?.id === entry.id ? `${entry.name} (vous)` : entry.name}
+              {myEntry?.id === entry.id ? t("queuedetail.you_in_queue", { name: entry.name }) : entry.name}
             </Text>
             {myEntry?.id === entry.id && (
               <View style={{ backgroundColor: colors.text, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                <Text style={{ color: colors.background, fontSize: 10, fontWeight: "700" }}>VOUS</Text>
+                <Text style={{ color: colors.background, fontSize: 10, fontWeight: "700" }}>{t("queuedetail.you_badge")}</Text>
               </View>
             )}
           </View>
@@ -319,17 +326,17 @@ export default function QueueScreen() {
         <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
           <View style={{ backgroundColor: colors.surfaceLight, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, gap: 12 }}>
             <View style={{ width: 36, height: 4, backgroundColor: colors.border, borderRadius: 2, alignSelf: "center", marginBottom: 8 }} />
-            <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>Rejoindre en tant qu'invité</Text>
-            <Text style={{ fontSize: 13, color: colors.textMuted }}>Saisissez vos informations pour rejoindre la file.</Text>
+            <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>{t("queuedetail.join_as_guest")}</Text>
+            <Text style={{ fontSize: 13, color: colors.textMuted }}>{t("queuedetail.guest_info_message")}</Text>
             <TextInput
-              placeholder="Votre nom"
+              placeholder={t("queuedetail.your_name")}
               value={guestData.name}
               onChangeText={(text) => setGuestData({ ...guestData, name: text })}
               style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 14, fontSize: 15, marginTop: 4, backgroundColor: colors.background, color: colors.text }}
               placeholderTextColor={colors.textMuted}
             />
             <TextInput
-              placeholder="Votre email"
+              placeholder={t("queuedetail.your_email")}
               keyboardType="email-address"
               autoCapitalize="none"
               value={guestData.email}
@@ -342,10 +349,10 @@ export default function QueueScreen() {
               disabled={!guestData.name || !guestData.email}
               style={{ backgroundColor: colors.text, padding: 16, borderRadius: 12, alignItems: "center", opacity: !guestData.name || !guestData.email ? 0.5 : 1 }}
             >
-              <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>Rejoindre</Text>
+              <Text style={{ color: colors.background, fontWeight: "700", fontSize: 16 }}>{t("queuedetail.join_button")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowGuestModal(false)} style={{ alignItems: "center", padding: 8 }}>
-              <Text style={{ color: colors.textMuted, fontSize: 14 }}>Annuler</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t("queuedetail.cancel")}</Text>
             </TouchableOpacity>
           </View>
         </View>
