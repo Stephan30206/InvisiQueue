@@ -96,8 +96,6 @@ export default function ManageScreen() {
     Alert.alert("✓ Présence confirmée", `${name} est marqué comme présent.`);
   };
 
-  const first = entries[0];
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
