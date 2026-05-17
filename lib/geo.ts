@@ -29,19 +29,41 @@ export async function getAddressFromCoords(
     // Continue vers le fallback
   }
 
-  // Fallback: utiliser Nominatim (OpenStreetMap)
+  // Fallback: utiliser Nominatim (OpenStreetMap) avec zoom élevé pour plus de précision
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
     );
     const data = await response.json();
 
     if (data.address) {
-      const { road, village, city, town, county, state } = data.address;
-      const parts = [road, village || city || town, county, state].filter(Boolean);
+      const {
+        building,
+        amenity,
+        hamlet,
+        neighbourhood,
+        road,
+        village,
+        city,
+        town,
+        county,
+        state,
+      } = data.address;
+
+      // Construire une adresse précise avec plus de détails
+      const parts = [
+        building || amenity,
+        hamlet,
+        neighbourhood,
+        road,
+        village || city || town,
+      ].filter(Boolean);
+
       if (parts.length > 0) {
-        return parts.slice(0, 2).join(", ");
+        return parts.slice(0, 3).join(", ");
       }
+
+      return county ? `${county}, ${state}` : state || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
     }
 
     return data.name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
@@ -60,7 +82,7 @@ export async function getUserLocation(): Promise<{
   if (status !== "granted") return null;
 
   const coords = await Location.getCurrentPositionAsync({
-    accuracy: Location.Accuracy.Balanced,
+    accuracy: Location.Accuracy.Highest,
   });
 
   const label = await getAddressFromCoords(
