@@ -5,23 +5,46 @@ export async function getAddressFromCoords(
   lng: number
 ): Promise<string> {
   try {
+    // Essayer d'abord avec Expo Location
     const [place] = await Location.reverseGeocodeAsync({
       latitude: lat,
       longitude: lng,
     });
 
-    if (!place) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    if (place) {
+      const parts = [
+        place.street,
+        place.district ?? place.subregion,
+        place.city,
+      ].filter(Boolean);
 
-    // Compose le nom selon ce qui est disponible
-    const parts = [
-      place.street,
-      place.district ?? place.subregion,
-      place.city,
-    ].filter(Boolean);
+      if (parts.length > 0) {
+        return parts.join(", ");
+      }
+      if (place.region) {
+        return place.region;
+      }
+    }
+  } catch {
+    // Continue vers le fallback
+  }
 
-    return parts.length > 0
-      ? parts.join(", ")
-      : place.region ?? `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  // Fallback: utiliser Nominatim (OpenStreetMap)
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    );
+    const data = await response.json();
+
+    if (data.address) {
+      const { road, village, city, town, county, state } = data.address;
+      const parts = [road, village || city || town, county, state].filter(Boolean);
+      if (parts.length > 0) {
+        return parts.slice(0, 2).join(", ");
+      }
+    }
+
+    return data.name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   } catch {
     return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   }
