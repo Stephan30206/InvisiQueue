@@ -1,7 +1,7 @@
 import { getQueueEntries, joinQueue, leaveQueue } from "@/data/queue-entries";
-import { getCurrentPosition, isWithinRadius } from "@/lib/location";
 import { getThemeColors, useTheme } from "@/lib/theme-provider";
 import { supabase } from "@/lib/supabase";
+import { useGeoAccess } from "@/hooks/useGeoAccess";
 import { QueueEntry } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -21,9 +21,12 @@ export default function QueueScreen() {
   const [joining, setJoining] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [queueName, setQueueName] = useState("");
+  const [queueCoords, setQueueCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [guestData, setGuestData] = useState({ name: "", email: "" });
   const [notification, setNotification] = useState<string | null>(null);
   const prevPositionRef = useRef<number | null>(null);
+
+  const { userLocation, canJoin: canJoinByDistance, distance, loading: geoLoading, permissionDenied } = useGeoAccess(queueCoords?.lat, queueCoords?.lng);
 
   useEffect(() => {
     loadQueue();
@@ -48,8 +51,11 @@ export default function QueueScreen() {
   }, [myEntry?.position]);
 
   const loadQueue = async () => {
-    const { data: q } = await supabase.from("queues").select("name").eq("id", id).single();
-    if (q) setQueueName(q.name);
+    const { data: q } = await supabase.from("queues").select("name, lat, lng").eq("id", id).single();
+    if (q) {
+      setQueueName(q.name);
+      setQueueCoords({ lat: q.lat, lng: q.lng });
+    }
     const data = await getQueueEntries(id!);
     setEntries(data);
     const { data: userData } = await supabase.auth.getUser();
@@ -60,16 +66,18 @@ export default function QueueScreen() {
   };
 
   const handleJoin = async () => {
-    const position = await getCurrentPosition();
-    if (!position) {
-      Alert.alert("Localisation requise", "Activez votre GPS.");
+    if (geoLoading) return;
+
+    if (permissionDenied) {
+      Alert.alert("Géolocalisation refusée", "Activez-la dans les paramètres.");
       return;
     }
-    const { data: queueData } = await supabase.from("queues").select("lat, lng").eq("id", id).single();
-    if (!queueData || !isWithinRadius(position.lat, position.lng, queueData.lat, queueData.lng)) {
+
+    if (!canJoinByDistance) {
       Alert.alert("Trop loin", "Vous devez être à moins de 500m de la file.");
       return;
     }
+
     const { data: userData } = await supabase.auth.getUser();
     if (userData.user) {
       setJoining(true);
@@ -141,6 +149,38 @@ export default function QueueScreen() {
       )}
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Geolocation status */}
+        {!myEntry && (
+          <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
+            {geoLoading ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <ActivityIndicator size="small" color={colors.text} />
+                <Text style={{ color: colors.textMuted, fontSize: 13 }}>Localisation en cours...</Text>
+              </View>
+            ) : permissionDenied ? (
+              <Text style={{ color: colors.danger, fontSize: 13, fontWeight: "600" }}>
+                Géolocalisation refusée. Activez-la dans les paramètres.
+              </Text>
+            ) : userLocation ? (
+              <View style={{ gap: 8 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Feather name="navigation" size={14} color={colors.textMuted} />
+                  <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+                    {userLocation.label}
+                  </Text>
+                </View>
+                {distance !== null && (
+                  <Text style={{ fontSize: 12, color: canJoinByDistance ? colors.text : colors.danger, fontWeight: "600" }}>
+                    {canJoinByDistance
+                      ? `✓ À ${distance}m — Accès autorisé`
+                      : `✗ À ${distance}m — Trop éloigné (max 500m)`}
+                  </Text>
+                )}
+              </View>
+            ) : null}
+          </View>
+        )}
+
         {/* Ma position */}
         {myEntry ? (
           <View style={{ margin: 20, padding: 24, borderRadius: 16, backgroundColor: colors.text, alignItems: "center" }}>
@@ -178,13 +218,15 @@ export default function QueueScreen() {
             </Text>
             <TouchableOpacity
               onPress={handleJoin}
-              disabled={joining}
-              style={{ backgroundColor: colors.text, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, opacity: joining ? 0.6 : 1 }}
+              disabled={joining || geoLoading || !canJoinByDistance}
+              style={{ backgroundColor: canJoinByDistance ? colors.text : colors.border, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, opacity: joining || !canJoinByDistance ? 0.6 : 1 }}
             >
               {joining ? (
                 <ActivityIndicator color={colors.background} />
               ) : (
-                <Text style={{ color: colors.background, fontWeight: "700", fontSize: 15 }}>Rejoindre la file</Text>
+                <Text style={{ color: canJoinByDistance ? colors.background : colors.textMuted, fontWeight: "700", fontSize: 15, textAlign: "center" }}>
+                  {canJoinByDistance ? "Rejoindre la file" : "Trop éloigné pour rejoindre"}
+                </Text>
               )}
             </TouchableOpacity>
           </View>
